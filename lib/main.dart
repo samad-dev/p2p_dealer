@@ -1,8 +1,8 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hascol_dealer/screens/home.dart';
 import 'package:hascol_dealer/screens/login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -15,7 +15,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Hascol',
+      title: 'Sales Bridge',
       home: SplashScreen(),
     );
   }
@@ -30,7 +30,24 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
+    checkLoginStatus();
     // getValue();
+  }
+
+  Future<void> checkLoginStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    final isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+
+    // Navigate to the appropriate screen based on the login status
+    if(isLoggedIn)
+    {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (BuildContext context) => Home(),
+        ),
+      );
+    }
   }
 
   @override
@@ -93,10 +110,25 @@ class _SplashScreenState extends State<SplashScreen> {
             SizedBox(
               height: MediaQuery.of(context).size.height / 18,
             ),
+            /*
             Image.asset(
               'assets/images/hascol_logo.png',
               width: 200,
             ),
+             */
+            Container(
+              child: Text(
+                'Sales Bridge',
+                style: GoogleFonts.poppins(
+                  textStyle: Theme.of(context).textTheme.displayLarge,
+                  fontSize: 24,
+                  color: Color(0xff1F41BB),
+                  fontWeight: FontWeight.w500,
+                  fontStyle: FontStyle.normal,
+                ),
+              ),
+            ),
+
             Container(
               alignment: Alignment.center,
               padding: EdgeInsets.only(left: 80, right: 80,top: 30),

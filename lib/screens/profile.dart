@@ -10,6 +10,7 @@ import 'package:hascol_dealer/screens/login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 
+import '../main.dart';
 import 'order_list.dart';
 
 class Profile extends StatefulWidget {
@@ -45,7 +46,7 @@ class _ProfileState extends State<Profile> {
             style: GoogleFonts.montserrat(
                 fontWeight: FontWeight.w700,
                 fontStyle: FontStyle.normal,
-                color: Color(0xff12283D),
+                color: Color(0xff1F41BB),
                 fontSize: 16),
           ),
         ),
@@ -68,13 +69,13 @@ class _ProfileState extends State<Profile> {
                             backgroundColor: Color(0xffB3DCF1),
                             radius: 60,
                             child: Icon(
-                              Icons.h_mobiledata,
+                              Icons.account_circle_outlined,
                               color: Colors.white,
                               size: 90,
                             ) //Text
                         ),
                         Text(
-                          'Hascol Dealer',
+                          'Sales Bridge',
                           style: GoogleFonts.poppins(
                             fontSize: 14,
                             color: Color(0xff000000),
@@ -97,80 +98,17 @@ class _ProfileState extends State<Profile> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: [
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    FluentIcons.person_circle_20_regular,
-                                    size: 35,
-                                  ),
-                                  SizedBox(width: 5,),
-                                  Text(
-                                    'Help & Support',
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 14,
-                                      color: Color(0xff000000),
-                                      fontWeight: FontWeight.w600,
-                                      fontStyle: FontStyle.normal,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    FluentIcons.contact_card_20_regular,
-                                    size: 35,
-                                  ),
-                                  SizedBox(width: 5,),
-                                  Text(
-                                    'Contact us',
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 14,
-                                      color: Color(0xff000000),
-                                      fontWeight: FontWeight.w600,
-                                      fontStyle: FontStyle.normal,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    FluentIcons.lock_multiple_20_regular,
-                                    size: 35,
-                                  ),
-                                  SizedBox(width: 5,),
-                                  Text(
-                                    'Privacy Policy',
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 14,
-                                      color: Color(0xff000000),
-                                      fontWeight: FontWeight.w600,
-                                      fontStyle: FontStyle.normal,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
                           Padding(
                             padding: const EdgeInsets.all(8.0),
                             child: Row(
                               children: [
                                 Icon(
-                                  FluentIcons.power_24_regular,
-                                  size: 25,
+                                  FluentIcons.person_circle_20_regular,
+                                  size: 35,
                                 ),
                                 SizedBox(width: 5,),
                                 Text(
-                                  'Logout',
+                                  'Help & Support',
                                   style: GoogleFonts.poppins(
                                     fontSize: 14,
                                     color: Color(0xff000000),
@@ -179,6 +117,76 @@ class _ProfileState extends State<Profile> {
                                   ),
                                 ),
                               ],
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  FluentIcons.contact_card_20_regular,
+                                  size: 35,
+                                ),
+                                SizedBox(width: 5,),
+                                Text(
+                                  'Contact us',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 14,
+                                    color: Color(0xff000000),
+                                    fontWeight: FontWeight.w600,
+                                    fontStyle: FontStyle.normal,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  FluentIcons.lock_multiple_20_regular,
+                                  size: 35,
+                                ),
+                                SizedBox(width: 5,),
+                                Text(
+                                  'Privacy Policy',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 14,
+                                    color: Color(0xff000000),
+                                    fontWeight: FontWeight.w600,
+                                    fontStyle: FontStyle.normal,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          GestureDetector(
+                            onTap: (){
+                              _logout();
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    FluentIcons.power_24_regular,
+                                    size: 25,
+                                  ),
+                                  SizedBox(width: 5,),
+                                  Container(
+                                    child: Text(
+                                      'Logout',
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 14,
+                                        color: Color(0xff000000),
+                                        fontWeight: FontWeight.w600,
+                                        fontStyle: FontStyle.normal,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           )
                         ],
@@ -202,12 +210,12 @@ class _ProfileState extends State<Profile> {
               currentIndex: _selectedIndex,
               unselectedItemColor: Color(0xff8d8d8d),
               unselectedLabelStyle:
-                  const TextStyle(color: Color(0xff8d8d8d), fontSize: 14),
+              const TextStyle(color: Color(0xff8d8d8d), fontSize: 14),
               unselectedFontSize: 14,
               showUnselectedLabels: true,
               showSelectedLabels: true,
               selectedIconTheme: IconThemeData(
-                color: Color(0xff12283D),
+                color: Color(0xff1F41BB),
               ),
               type: BottomNavigationBarType.shifting,
               items: const <BottomNavigationBarItem>[
@@ -234,7 +242,7 @@ class _ProfileState extends State<Profile> {
                   backgroundColor: Colors.white,
                 ),
               ],
-              selectedItemColor: Color(0xff12283D),
+              selectedItemColor: Color(0xff1F41BB),
               iconSize: 40,
               onTap: _onItemTapped,
               elevation: 15),
@@ -268,7 +276,7 @@ class _ProfileState extends State<Profile> {
   }
 
   Widget headerChild(String header, int value) => Expanded(
-          child: Column(
+      child: Column(
         children: <Widget>[
           Text(header),
           SizedBox(
@@ -278,9 +286,20 @@ class _ProfileState extends State<Profile> {
             '$value',
             style: TextStyle(
                 fontSize: 14.0,
-                color: const Color(0xFF26CBE6),
+                color: const Color(0xff1F41BB),
                 fontWeight: FontWeight.bold),
           )
         ],
       ));
+
+  Future<void> _logout() async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setBool('isLoggedIn', false); // Clear login status
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (BuildContext context) => SplashScreen(),
+      ),
+    );
+  }
 }

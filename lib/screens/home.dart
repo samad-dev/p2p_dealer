@@ -5,13 +5,16 @@ import 'package:flutter_svg/svg.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hascol_dealer/screens/complaint.dart';
+import 'package:hascol_dealer/screens/home.dart';
 import 'package:hascol_dealer/screens/login.dart';
 import 'package:hascol_dealer/screens/order_list.dart';
 import 'package:hascol_dealer/screens/profile.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
+import 'package:syncfusion_flutter_charts/charts.dart';
+
 
 import 'create_order.dart';
+import 'home.dart';
 
 class Home extends StatefulWidget {
   static const Color contentColorOrange = Color(0xFF00705B);
@@ -20,10 +23,22 @@ class Home extends StatefulWidget {
   @override
   _HomeScreenState createState() => _HomeScreenState();
 }
-
 class _HomeScreenState extends State<Home> {
+  final List<chartdata> ChartData = [
+    chartdata("Jan", 20, 30, 40),
+    chartdata("Feb", 20, 30, 40),
+    chartdata("Mar", 20, 30, 40),
+    chartdata("Apr", 20, 30, 40),
+    chartdata("May", 20, 30, 40),
+    chartdata("Jun", 20, 30, 40),
+    chartdata("Jul", 20, 30, 40),
+    chartdata("Aug", 20, 30, 40),
+    chartdata("Sep", 20, 30, 40),
+    chartdata("Oct", 20, 30, 40),
+    chartdata("Nov", 20, 30, 40),
+    chartdata("Dec", 20, 30, 40),
+  ];
   final double width = 7;
-
   late List<BarChartGroupData> rawBarGroups;
   late List<BarChartGroupData> showingBarGroups;
   int _selectedIndex = 0;
@@ -72,7 +87,7 @@ class _HomeScreenState extends State<Home> {
       text = '5K';
     } else if (value == 19) {
       text = '10K';
-    }else if (value == 25) {
+    } else if (value == 25) {
       text = '15K';
     }
     else {
@@ -86,7 +101,16 @@ class _HomeScreenState extends State<Home> {
   }
 
   Widget bottomTitles(double value, TitleMeta meta) {
-    final titles = <String>['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul','Aug'];
+    final titles = <String>[
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug'
+    ];
 
     final Widget text = Text(
       titles[value.toInt()],
@@ -172,7 +196,6 @@ class _HomeScreenState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-
     DateTime now = DateTime.now();
     String formattedDate = DateFormat('EEE d MMM kk:mm:ss').format(now);
     return Scaffold(
@@ -184,66 +207,75 @@ class _HomeScreenState extends State<Home> {
             children: [
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  CircleAvatar(
-                    backgroundColor: Color(0xff12283D),
-                    radius: 30,
-                    child: Text(
-                      'Hascol',
-                      style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        color: Colors.white,
-                        fontWeight: FontWeight.w700,
-                        fontStyle: FontStyle.normal,
-                      ),
-                    ), //Text
-                  ),
-                  SizedBox(
-                    width: 5,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 10),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Welcome Home,',
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CircleAvatar(
+                        backgroundColor: Color(0xff12283D),
+                        radius: 30,
+                        child: Text(
+                          'SB',
                           style: GoogleFonts.poppins(
-                            fontSize: 14,
-                            color: Color(0xff8A8A8A),
-                            fontWeight: FontWeight.w500,
-                            fontStyle: FontStyle.italic,
+                            fontSize: 16,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                            fontStyle: FontStyle.normal,
                           ),
-                        ),
-                        Text(
-                          'Hascol Dealer',
-                          style: GoogleFonts.poppins(
-                            fontSize: 14,
-                            color: Color(0xff000000),
-                            fontWeight: FontWeight.w800,
-                            fontStyle: FontStyle.italic,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width / 3.2,
-                  ),
-                  IconButton(
-                      // Use the FaIcon Widget + FontAwesomeIcons class for the IconData
-                      icon: Icon(
-                        Icons.add_box_rounded,
-                        color: Color(0xff12283D),
-                        size: 35,
+                        ), //Text
                       ),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => Create_Order()),
-                        );
-                        print("Pressed");
-                      }),
+                      SizedBox(
+                        width: 5,
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 10),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Welcome Home,',
+                              style: GoogleFonts.poppins(
+                                fontSize: 14,
+                                color: Color(0xff8A8A8A),
+                                fontWeight: FontWeight.w500,
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                            Text(
+                              'Sales Bridge',
+                              style: GoogleFonts.poppins(
+                                fontSize: 14,
+                                color: Color(0xff000000),
+                                fontWeight: FontWeight.w800,
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      IconButton(
+                        // Use the FaIcon Widget + FontAwesomeIcons class for the IconData
+                          icon: Icon(
+                            Icons.add_box_rounded,
+                            color: Color(0xff12283D),
+                            size: 35,
+                          ),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => Create_Order()),
+                            );
+                            print("Pressed");
+                          }),
+                    ],
+                  ),
                 ],
               ),
               SizedBox(
@@ -256,7 +288,10 @@ class _HomeScreenState extends State<Home> {
                     color: Color(0xffF0F0F0),
                     elevation: 15,
                     child: SizedBox(
-                      width: MediaQuery.of(context).size.width / 1.07,
+                      width: MediaQuery
+                          .of(context)
+                          .size
+                          .width / 1.07,
                       height: 140,
                       child: Padding(
                         padding: const EdgeInsets.all(10.0),
@@ -290,7 +325,7 @@ class _HomeScreenState extends State<Home> {
                                       color: Colors.white,
                                       size: 18,
                                     ) //Text
-                                    ),
+                                ),
                                 SizedBox(
                                   width: 5,
                                 ),
@@ -334,184 +369,198 @@ class _HomeScreenState extends State<Home> {
                 height: 10,
               ),
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Card(
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(10))),
-                    color: Color(0xff12283D),
-                    elevation: 15,
-                    child: SizedBox(
-                      width: 165,
-                      height: 160,
-                      child: Padding(
-                        padding: const EdgeInsets.all(10.0),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(
-                              height: 5,
-                            ),
-                            Card(
-                              color: Color(0xff586776),
-                              child: SizedBox(
-                                width: 30,
-                                height: 30,
-                                child: Icon(
-                                  Icons.bookmark_border,
-                                  color: Colors.white,
-                                ),
+                  Expanded(
+                    child: Card(
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(10))),
+                      color: Color(0xff12283D),
+                      elevation: 15,
+                      child: SizedBox(
+                        width: 165,
+                        height: 160,
+                        child: Padding(
+                          padding: const EdgeInsets.all(10.0),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const SizedBox(
+                                height: 5,
                               ),
-                            ), //Text
-                            const SizedBox(
-                              height: 5,
-                            ),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Total Orders',
-                                  style: GoogleFonts.poppins(
-                                    color: Color(0xffffffff),
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 16,
-                                    fontStyle: FontStyle.normal,
+                              Card(
+                                color: Color(0xff586776),
+                                child: SizedBox(
+                                  width: 30,
+                                  height: 30,
+                                  child: Icon(
+                                    Icons.bookmark_border,
+                                    color: Colors.white,
                                   ),
                                 ),
-                                Text(
-                                  '100 Orders',
-                                  style: GoogleFonts.montserrat(
-                                    color: Color(0xffc7c7c7),
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 12,
-                                    fontStyle: FontStyle.normal,
-                                  ),
-                                ),
-                                OutlinedButton(
-                                  child: Text('Create Order',style: GoogleFonts.montserrat(
-                                    color: Color(0xffc7c7c7),
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 12,
-                                    fontStyle: FontStyle.normal,
-                                  ),),
-
-                                  style: OutlinedButton.styleFrom(
-                                    side: BorderSide(width: 1.0, color: Color(
-                                        0xd5e0e0e0)),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(20),
+                              ), //Text
+                              const SizedBox(
+                                height: 5,
+                              ),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Total Orders',
+                                    style: GoogleFonts.poppins(
+                                      color: Color(0xffffffff),
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 16,
+                                      fontStyle: FontStyle.normal,
                                     ),
                                   ),
-                                  onPressed: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(builder: (context) => Create_Order()),
-                                    );
-                                  },
-                                )
+                                  Text(
+                                    '100 Orders',
+                                    style: GoogleFonts.montserrat(
+                                      color: Color(0xffc7c7c7),
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 12,
+                                      fontStyle: FontStyle.normal,
+                                    ),
+                                  ),
 
-                              ],
-                            ),
+                                  OutlinedButton(
+                                    child: Text('Create Order',
+                                      style: GoogleFonts.montserrat(
+                                        color: Color(0xffc7c7c7),
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 12,
+                                        fontStyle: FontStyle.normal,
+                                      ),),
 
-                            //SizedBox
-                            //T //SizedBox
-                            //SizedBox
-                          ],
-                        ), //Column
-                      ), //Padding
-                    ), //SizedBox,
+                                    style: OutlinedButton.styleFrom(
+                                      side: BorderSide(width: 1.0, color: Color(
+                                          0xd5e0e0e0)),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                    ),
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(builder: (context) =>
+                                            Create_Order()),
+                                      );
+                                    },
+                                  )
+
+                                ],
+                              ),
+
+                              //SizedBox
+                              //T //SizedBox
+                              //SizedBox
+                            ],
+                          ), //Column
+                        ), //Padding
+                      ), //SizedBox,
+                    ),
                   ),
-                  Card(
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(10))),
-                    color: Color(0xffF0F0F0),
-                    elevation: 15,
-                    child: SizedBox(
-                      width: 165,
-                      height: 160,
-                      child: Padding(
-                        padding: const EdgeInsets.all(10.0),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(
-                              height: 5,
-                            ),
-                            Card(
-                              color: Color(0x283C81B5),
-                              child: SizedBox(
-                                width: 30,
-                                height: 30,
-                                child: Icon(
-                                  Icons.crisis_alert,
-                                  color: Color(0xff12283D),
-                                ),
+                  Expanded(
+                    child: Card(
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(10))),
+                      color: Color(0xffF0F0F0),
+                      elevation: 15,
+                      child: SizedBox(
+                        width: 165,
+                        height: 160,
+                        child: Padding(
+                          padding: const EdgeInsets.all(10.0),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const SizedBox(
+                                height: 5,
                               ),
-                            ), //Text
-                            const SizedBox(
-                              height: 5,
-                            ),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Total Complaints',
-                                  style: GoogleFonts.poppins(
+                              Card(
+                                color: Color(0x283C81B5),
+                                child: SizedBox(
+                                  width: 30,
+                                  height: 30,
+                                  child: Icon(
+                                    Icons.crisis_alert,
                                     color: Color(0xff12283D),
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 16,
-                                    fontStyle: FontStyle.normal,
                                   ),
                                 ),
-                                Text(
-                                  '15 Complaints',
-                                  style: GoogleFonts.montserrat(
-                                    color: Color(0xff8D8D8D),
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 12,
-                                    fontStyle: FontStyle.normal,
-                                  ),
-                                ),
-                                OutlinedButton(
-                                  child: Text('Create Complaint',style: GoogleFonts.montserrat(
-                                    color: Color(0xff8D8D8D),
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 12,
-                                    fontStyle: FontStyle.normal,
-                                  ),),
+                              ), //Text
 
-                                  style: OutlinedButton.styleFrom(
-                                    side: BorderSide(width: 1.0, color: Color(
-                                        0xd5e0e0e0)),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(20),
-
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Total Complaints',
+                                    style: GoogleFonts.poppins(
+                                      color: Color(0xff12283D),
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 16,
+                                      fontStyle: FontStyle.normal,
                                     ),
                                   ),
-                                  onPressed: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(builder: (context) => Create_Complaints()),
-                                    );
-                                    print('Pressed');
-                                  },
-                                )
+                                  Text(
+                                    '15 Complaints',
+                                    style: GoogleFonts.montserrat(
+                                      color: Color(0xff8D8D8D),
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 12,
+                                      fontStyle: FontStyle.normal,
+                                    ),
+                                  ),
+                                  const SizedBox(
+                                    height: 8,
+                                  ),
+                                  OutlinedButton(
+                                    child: Text('Create Complaint',
+                                      style: GoogleFonts.montserrat(
+                                        color: Color(0xff8D8D8D),
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 12,
+                                        fontStyle: FontStyle.normal,
+                                      ),),
 
-                              ],
-                            ),
+                                    style: OutlinedButton.styleFrom(
+                                      side: BorderSide(width: 1.0, color: Color(
+                                          0xd5e0e0e0)),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(20),
 
-                            //SizedBox
-                            //T //SizedBox
-                            //SizedBox
-                          ],
-                        ), //Column
-                      ), //Padding
-                    ), //SizedBox,
+                                      ),
+                                    ),
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(builder: (context) =>
+                                            Create_Complaints()),
+                                      );
+                                      print('Pressed');
+                                    },
+                                  )
+
+                                ],
+                              ),
+
+                              //SizedBox
+                              //T //SizedBox
+                              //SizedBox
+                            ],
+                          ), //Column
+                        ), //Padding
+                      ), //SizedBox,
+                    ),
                   ),
                 ],
               ),
+              SizedBox(
+                height: 10,
+              ),
+              /*
               Card(
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.all(Radius.circular(10))),
@@ -532,7 +581,8 @@ class _HomeScreenState extends State<Home> {
                             ),
                             const Text(
                               'Order History',
-                              style: TextStyle(color: Colors.white, fontSize: 22),
+                              style: TextStyle(
+                                  color: Colors.white, fontSize: 22),
                             ),
                             // const SizedBox(
                             //   width: 4,
@@ -556,7 +606,8 @@ class _HomeScreenState extends State<Home> {
                                   getTooltipItem: (a, b, c, d) => null,
                                 ),
                                 touchCallback: (FlTouchEvent event, response) {
-                                  if (response == null || response.spot == null) {
+                                  if (response == null ||
+                                      response.spot == null) {
                                     setState(() {
                                       touchedGroupIndex = -1;
                                       showingBarGroups = List.of(rawBarGroups);
@@ -564,7 +615,8 @@ class _HomeScreenState extends State<Home> {
                                     return;
                                   }
 
-                                  touchedGroupIndex = response.spot!.touchedBarGroupIndex;
+                                  touchedGroupIndex =
+                                      response.spot!.touchedBarGroupIndex;
 
                                   setState(() {
                                     if (!event.isInterestedForInteractions) {
@@ -576,7 +628,8 @@ class _HomeScreenState extends State<Home> {
                                     if (touchedGroupIndex != -1) {
                                       var sum = 0.0;
                                       for (final rod
-                                      in showingBarGroups[touchedGroupIndex].barRods) {
+                                      in showingBarGroups[touchedGroupIndex]
+                                          .barRods) {
                                         sum += rod.toY;
                                       }
                                       final avg = sum /
@@ -585,12 +638,14 @@ class _HomeScreenState extends State<Home> {
                                               .length;
 
                                       showingBarGroups[touchedGroupIndex] =
-                                          showingBarGroups[touchedGroupIndex].copyWith(
+                                          showingBarGroups[touchedGroupIndex]
+                                              .copyWith(
                                             barRods: showingBarGroups[touchedGroupIndex]
                                                 .barRods
                                                 .map((rod) {
                                               return rod.copyWith(
-                                                  toY: avg, color: widget.rightBarColor);
+                                                  toY: avg,
+                                                  color: widget.rightBarColor);
                                             }).toList(),
                                           );
                                     }
@@ -627,7 +682,8 @@ class _HomeScreenState extends State<Home> {
                               barGroups: showingBarGroups,
                               gridData: const FlGridData(show: false),
                             ),
-                            swapAnimationDuration: Duration(milliseconds: 150), // Optional
+                            swapAnimationDuration: Duration(milliseconds: 150),
+                            // Optional
                             swapAnimationCurve: Curves.linear,
                           ),
                         ),
@@ -639,6 +695,206 @@ class _HomeScreenState extends State<Home> {
                   ),
                 ),
               ),
+               */
+              Card(
+                color: Color(0xff12283D),
+                child: Column(
+                  children: <Widget>[
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: Text(
+                        "Order History",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                    Container(
+                      child: SfCartesianChart(
+                        primaryXAxis: CategoryAxis(),
+                        legend: Legend( // Enable the legend
+                          isVisible: true,
+                          position: LegendPosition.top,
+                        ),
+                        series: <ChartSeries>[
+                          StackedColumn100Series<chartdata, String>(
+                            dataSource: ChartData,
+                            xValueMapper: (chartdata ch, _) => ch.x,
+                            yValueMapper: (chartdata ch, _) => ch.y1,
+                            name: 'PMG', // Legend label
+                            color: Color(0xfffd6929), // Change the color of the bars
+                          ),
+                          StackedColumn100Series<chartdata, String>(
+                            dataSource: ChartData,
+                            xValueMapper: (chartdata ch, _) => ch.x,
+                            yValueMapper: (chartdata ch, _) => ch.y2,
+                            name: 'HSD', // Legend label
+                            color: Color(0xff5bebd1), // Change the color of the bars
+                          ),
+                          StackedColumn100Series<chartdata, String>(
+                            dataSource: ChartData,
+                            xValueMapper: (chartdata ch, _) => ch.x,
+                            yValueMapper: (chartdata ch, _) => ch.y3,
+                            name: 'Total', // Legend label
+                            color: Color(0xff6c6074), // Change the color of the bars
+                            borderRadius: const BorderRadius.only(
+                              topLeft: Radius.circular(10),
+                              topRight: Radius.circular(10),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              SizedBox(
+                height: 10,
+              ),
+              Column(
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                          child: Card(
+                            color: Color(0xffF0F0F0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              // Align content to the left
+                              children: <Widget>[
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text(
+                                    'INDENT PRICE',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xff0e4967),
+                                      fontSize: 18.0,
+                                    ),
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment
+                                        .spaceBetween,
+                                    children: <Widget>[
+                                      Text(
+                                        'PMG',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: Color(0xff0e4967),),
+                                      ),
+                                      Text(
+                                        'HSD',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: Color(0xff0e4967),),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.only(
+                                      left: 8.0, right: 8.0, bottom: 8.0),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment
+                                        .spaceBetween,
+                                    children: <Widget>[
+                                      Text('330.2/Ltr',
+                                        style: TextStyle(
+                                            color: Color(0xff0e4967)),),
+                                      Text('316.5/Ltr',
+                                        style: TextStyle(
+                                            color: Color(0xff0e4967)),),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                      ),
+
+                    ],
+                  ),
+                  SizedBox(
+                    height: 10,
+                  ),
+                  Row(
+                    children: [
+                      Expanded(
+                          child: Card(
+                            color: Color(0xffF0F0F0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              // Align content to the left
+                              children: <Widget>[
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text(
+                                    'NOZZLE PRICE',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xff0e4967),
+                                      fontSize: 18.0,
+                                    ),
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment
+                                        .spaceBetween,
+                                    children: <Widget>[
+                                      Text(
+                                        'PMG',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: Color(0xff0e4967),),
+                                      ),
+                                      Text(
+                                        'HSD',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: Color(0xff0e4967),),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.only(
+                                      left: 8.0, right: 8.0, bottom: 8.0),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment
+                                        .spaceBetween,
+                                    children: <Widget>[
+                                      Text('330.2/Ltr',
+                                        style: TextStyle(
+                                            color: Color(0xff0e4967)),),
+                                      Text('316.5/Ltr',
+                                        style: TextStyle(
+                                            color: Color(0xff0e4967)),),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                      ),
+
+                    ],
+                  ),
+                ],
+              ),
+              // practise material.
+
+
+
+
+
             ],
           ),
         ),
@@ -656,7 +912,8 @@ class _HomeScreenState extends State<Home> {
 
             currentIndex: _selectedIndex,
             unselectedItemColor: Color(0xff8d8d8d),
-            unselectedLabelStyle: const TextStyle(color: Color(0xff8d8d8d), fontSize: 14),
+            unselectedLabelStyle: const TextStyle(
+                color: Color(0xff8d8d8d), fontSize: 14),
             unselectedFontSize: 14,
             showUnselectedLabels: true,
             showSelectedLabels: true,
@@ -667,17 +924,17 @@ class _HomeScreenState extends State<Home> {
             type: BottomNavigationBarType.shifting,
             items: const <BottomNavigationBarItem>[
               BottomNavigationBarItem(
-                  icon: Icon(FluentIcons.home_32_regular,size: 20,),
+                  icon: Icon(FluentIcons.home_32_regular, size: 20,),
                   label: 'Home',
                   backgroundColor: Colors.white
               ),
               BottomNavigationBarItem(
-                  icon: Icon(FluentIcons.weather_sunny_16_regular,size: 20,),
+                  icon: Icon(FluentIcons.weather_sunny_16_regular, size: 20,),
                   label: 'Orders',
                   backgroundColor: Colors.white
               ),
               BottomNavigationBarItem(
-                icon: Icon(FluentIcons.inprivate_account_16_regular,size: 20,),
+                icon: Icon(FluentIcons.inprivate_account_16_regular, size: 20,),
                 label: 'Profile',
                 backgroundColor: Colors.white,
               ),
@@ -688,28 +945,34 @@ class _HomeScreenState extends State<Home> {
             onTap: _onItemTapped,
             elevation: 15
         ),
-
       ),
     );
   }
+
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
     });
-    if(_selectedIndex==1)
-      {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => Orders()),
-        );
-      }
-    if(_selectedIndex==2)
-    {
+    if (_selectedIndex == 1) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => Orders()),
+      );
+    }
+    if (_selectedIndex == 2) {
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => Profile()),
       );
     }
-
   }
 }
+
+class chartdata{
+  final String x;
+  final int y1;
+  final int y2;
+  final int y3;
+  chartdata(this.x,this.y1,this.y2,this.y3);
+}
+
