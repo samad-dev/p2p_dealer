@@ -111,14 +111,31 @@ class _HomeScreenState extends State<Home> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             //CircleAvatar
-                            const SizedBox(
-                              height: 10,
-                            ), //SizedBox
+                            const SizedBox(height: 10,), //SizedBox
+                            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children:[
+                                Text(
+                                  'Branch Name (CODE)',
+                                  style: GoogleFonts.raleway(
+                                    fontSize: 22,
+                                    color: Color(0xffffffff),
+                                    fontWeight: FontWeight.w500,
+                                    fontStyle: FontStyle.normal,
+                                  ),
+
+                                ),
+                                Icon(
+                                  Icons.keyboard_arrow_down_outlined, // Replace with the icon you want
+                                  color: Color(0xffffffff), // You can set the color of the icon
+                                  size: 20.0, // You can set the size of the icon
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: 20,),
                             Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  'Ledger Balance',
+                                  'Current Balance',
                                   style: GoogleFonts.raleway(
                                     fontSize: 14,
                                     color: Color(0xffffffff),
@@ -126,15 +143,9 @@ class _HomeScreenState extends State<Home> {
                                     fontStyle: FontStyle.normal,
                                   ),
                                 ),
-                                Icon(
-                                  Icons.keyboard_arrow_down_outlined, // Replace with the icon you want
-                                  color: Color(0xffffffff), // You can set the color of the icon
-                                  size: 20.0, // You can set the size of the icon
-                                ),
-                            ],),
-                            const SizedBox(
-                              height: 50,
+                              ],
                             ),
+                            SizedBox(height: 10,),
                             Row(
                               children: [
                                 CircleAvatar(
@@ -242,7 +253,14 @@ class _HomeScreenState extends State<Home> {
                       margin: EdgeInsets.all(0),
                       child: Column(
                         children: [
-                          SizedBox(height:30),
+                          Divider(
+                            color: Color(0x4f5d5d5d),   // Set the color of the divider
+                            height: 20.0,         // Set the height of the divider
+                            thickness: 5.0,       // Set the thickness of the divider
+                            indent: 185.0,         // Set the left indent of the divider
+                            endIndent: 185.0,      // Set the right indent of the divider
+                          ),
+                          SizedBox(height:10),
                           Card(
                             color: Colors.white,
                             child: Column(

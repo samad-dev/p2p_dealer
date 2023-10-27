@@ -123,153 +123,159 @@ class _SplashScreenState extends State<SplashScreen> {
               fontStyle: FontStyle.normal,
             ),
               ),
-            SizedBox( height: MediaQuery.of(context).size.height * 0.55,),
-            Container(
-              padding: EdgeInsets.only(left: 20, right: 20),
+            Expanded(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ElevatedButton(
-                          child: Padding(
-                            padding: const EdgeInsets.all(10.0),
-                            child: Text(
-                              'Login',
-                              style: GoogleFonts.raleway(
-                                fontWeight: FontWeight.w700,
-                                fontStyle: FontStyle.normal,
-                                fontSize: 16,
-                              ),
-                            ),
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            primary: Color(0xffe81329),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.0)),
-                          ),
-                          onPressed: () {
-                            Navigator.pushReplacement<void, void>(
-                              context,
-                              MaterialPageRoute<void>(
-                                builder: (BuildContext context) => Login(),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                      SizedBox(width: 5,),
-                      TextButton(
-                        style: ButtonStyle(
-                          overlayColor: MaterialStateProperty.all<Color>(Colors.transparent),
-                          shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                            RoundedRectangleBorder(
-                              side: BorderSide(color: Colors.green.shade700), // Add a blue border
-                              borderRadius: BorderRadius.circular(30.0),
-                            ),
-                          ),
-                        ),
-                        onPressed: () {},
-                        child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children:[
+                  Container(
+                    padding: EdgeInsets.only(left: 20, right: 20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Row(
                           children: [
-                            Icon(
-                              Icons.help_outline, // Add the question icon
-                              color: Colors.white, // Set the icon color to blue
+                            Expanded(
+                              child: ElevatedButton(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(10.0),
+                                  child: Text(
+                                    'Login',
+                                    style: GoogleFonts.raleway(
+                                      fontWeight: FontWeight.w700,
+                                      fontStyle: FontStyle.normal,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  primary: Color(0xffe81329),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.0)),
+                                ),
+                                onPressed: () {
+                                  Navigator.pushReplacement<void, void>(
+                                    context,
+                                    MaterialPageRoute<void>(
+                                      builder: (BuildContext context) => Login(),
+                                    ),
+                                  );
+                                },
+                              ),
                             ),
-                            Text(
-                              '  Help ',
-                              style: GoogleFonts.poppins(
-                                color: Color(0xfff4f5f5),
-                                fontWeight: FontWeight.w700,
-                                fontStyle: FontStyle.normal,
-                                fontSize: 16,
+                            SizedBox(width: 5,),
+                            TextButton(
+                              style: ButtonStyle(
+                                overlayColor: MaterialStateProperty.all<Color>(Colors.transparent),
+                                shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                                  RoundedRectangleBorder(
+                                    side: BorderSide(color: Colors.green.shade700), // Add a blue border
+                                    borderRadius: BorderRadius.circular(30.0),
+                                  ),
+                                ),
+                              ),
+                              onPressed: () {},
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.help_outline, // Add the question icon
+                                    color: Colors.white, // Set the icon color to blue
+                                  ),
+                                  Text(
+                                    '  Help ',
+                                    style: GoogleFonts.poppins(
+                                      color: Color(0xfff4f5f5),
+                                      fontWeight: FontWeight.w700,
+                                      fontStyle: FontStyle.normal,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ],
                         ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 10), // Add some spacing between the rows
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Expanded(
-                        child: TextButton(
-                          style: ButtonStyle(
-                            overlayColor: MaterialStateProperty.all<Color>(Colors.transparent),
-                            shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                              RoundedRectangleBorder(
-                                side: BorderSide(color: Color(0xfff4f5f5),), // Add a blue border
-                                borderRadius: BorderRadius.circular(30.0),
+                        SizedBox(height: 10), // Add some spacing between the rows
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Expanded(
+                              child: TextButton(
+                                style: ButtonStyle(
+                                  overlayColor: MaterialStateProperty.all<Color>(Colors.transparent),
+                                  shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                                    RoundedRectangleBorder(
+                                      side: BorderSide(color: Color(0xfff4f5f5),), // Add a blue border
+                                      borderRadius: BorderRadius.circular(30.0),
+                                    ),
+                                  ),
+                                ),
+                                onPressed: () {},
+                                child: Text(
+                                  'Register here',
+                                  style: GoogleFonts.raleway(
+                                    color: Color(0xfff4f5f5),
+                                    fontWeight: FontWeight.w700,
+                                    fontStyle: FontStyle.normal,
+                                  ),
+                                ),
                               ),
                             ),
-                          ),
-                          onPressed: () {},
-                          child: Text(
-                            'Register here',
-                            style: GoogleFonts.raleway(
-                              color: Color(0xfff4f5f5),
-                              fontWeight: FontWeight.w700,
-                              fontStyle: FontStyle.normal,
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: EdgeInsets.only(left: 40, right: 40, top: 10),
+                    child:Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Card(
+                          child: Padding(
+                            padding: const EdgeInsets.all(12.0),
+                            child: Column(
+                              children: [
+                                Image.asset(
+                                  'assets/images/gas-station.png', // Replace with the actual path to your image
+                                  width: 48.0,
+                                  height: 48.0,
+                                ),
+                                Text(
+                                  'Open an Account',
+                                  style: TextStyle(
+                                    fontSize: 16.0,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            Container(
-              padding: EdgeInsets.only(left: 40, right: 40, top: 10),
-              child:Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(12.0),
-                      child: Column(
-                        children: [
-                          Image.asset(
-                            'assets/images/gas-station.png', // Replace with the actual path to your image
-                            width: 48.0,
-                            height: 48.0,
-                          ),
-                          Text(
-                            'Open an Account',
-                            style: TextStyle(
-                              fontSize: 16.0,
+                        Card(
+                          child: Padding(
+                            padding: const EdgeInsets.all(12.0),
+                            child: Column(
+                              children: [
+                                Image.asset(
+                                  'assets/images/gps (1).png', // Replace with the actual path to your image
+                                  width: 48.0,
+                                  height: 48.0,
+                                ),
+                                Text(
+                                  'Locate Us',
+                                  style: TextStyle(
+                                    fontSize: 18.0,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(12.0),
-                      child: Column(
-                        children: [
-                          Image.asset(
-                            'assets/images/gps (1).png', // Replace with the actual path to your image
-                            width: 48.0,
-                            height: 48.0,
-                          ),
-                          Text(
-                            'Locate Us',
-                            style: TextStyle(
-                              fontSize: 18.0,
-                            ),
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
-            ),
+            )
 
           ],
           /*
