@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hascol_dealer/screens/complaint.dart';
+import 'package:hascol_dealer/screens/complaint_list.dart';
 import 'package:hascol_dealer/screens/create_order.dart';
 import 'package:hascol_dealer/screens/home.dart';
 import 'package:hascol_dealer/screens/login.dart';
@@ -231,7 +233,7 @@ class _ProfileState extends State<Profile> {
                       FluentIcons.weather_sunny_16_regular,
                       size: 20,
                     ),
-                    label: 'Orders',
+                    label: 'Complaint',
                     backgroundColor: Colors.white),
                 BottomNavigationBarItem(
                   icon: Icon(
@@ -258,19 +260,13 @@ class _ProfileState extends State<Profile> {
     if (_selectedIndex == 1) {
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => Orders()),
+        MaterialPageRoute(builder: (context) => Complaints()),
       );
     }
     if (_selectedIndex == 0) {
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => Home()),
-      );
-    }
-    if (_selectedIndex == 2) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => Profile()),
       );
     }
   }

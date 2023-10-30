@@ -5,10 +5,13 @@ import 'package:flutter_svg/svg.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hascol_dealer/screens/complaint.dart';
+import 'package:hascol_dealer/screens/complaint_list.dart';
 import 'package:hascol_dealer/screens/home.dart';
 import 'package:hascol_dealer/screens/login.dart';
+import 'package:hascol_dealer/screens/lubricant_list.dart';
 import 'package:hascol_dealer/screens/order_list.dart';
 import 'package:hascol_dealer/screens/profile.dart';
+import 'package:hascol_dealer/screens/uniform_list.dart';
 import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
@@ -45,10 +48,10 @@ class _HomeScreenState extends State<Home> {
   late List<BarChartGroupData> showingBarGroups;
   int _selectedIndex = 0;
   int touchedGroupIndex = -1;
-
   @override
   void initState() {
     super.initState();
+
   }
 
   @override
@@ -115,7 +118,7 @@ class _HomeScreenState extends State<Home> {
                             Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children:[
                                 Text(
-                                  'Branch Name (CODE)',
+                                  'Dealership Name (CODE)',
                                   style: GoogleFonts.raleway(
                                     fontSize: 22,
                                     color: Color(0xffffffff),
@@ -124,11 +127,161 @@ class _HomeScreenState extends State<Home> {
                                   ),
 
                                 ),
-                                Icon(
-                                  Icons.keyboard_arrow_down_outlined, // Replace with the icon you want
-                                  color: Color(0xffffffff), // You can set the color of the icon
-                                  size: 20.0, // You can set the size of the icon
+                                GestureDetector(
+                                  onTap: (){
+                                    showDialog(
+                                    context: context,
+                                    builder: (context) => CustomModal(),);
+                                    /*
+                                    showDialog(context: context, builder: (BuildContext context){
+                                      return AlertDialog(
+                                        contentPadding: EdgeInsets.symmetric(horizontal: 0.0),
+                                        content: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              Expanded(
+                                                  child: Card(
+                                                    color: Color(0xffF0F0F0),
+                                                    child: Column(
+                                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                                      // Align content to the left
+                                                      children: <Widget>[
+                                                        Padding(
+                                                          padding: const EdgeInsets.all(0.0),
+                                                          child: Text(
+                                                            'INDENT PRICE',
+                                                            style: TextStyle(
+                                                              fontWeight: FontWeight.bold,
+                                                              color: Color(0xff0e4967),
+                                                              fontSize: 18.0,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                        Padding(
+                                                          padding: const EdgeInsets.all(8.0),
+                                                          child: Row(
+                                                            mainAxisAlignment: MainAxisAlignment
+                                                                .spaceBetween,
+                                                            children: <Widget>[
+                                                              Text(
+                                                                'PMG',
+                                                                style: TextStyle(
+                                                                  fontWeight: FontWeight.bold,
+                                                                  color: Color(0xff0e4967),),
+                                                              ),
+                                                              Text(
+                                                                'HSD',
+                                                                style: TextStyle(
+                                                                  fontWeight: FontWeight.bold,
+                                                                  color: Color(0xff0e4967),),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                        Padding(
+                                                          padding: const EdgeInsets.only(
+                                                              left: 8.0, right: 8.0, bottom: 8.0),
+                                                          child: Row(
+                                                            mainAxisAlignment: MainAxisAlignment
+                                                                .spaceBetween,
+                                                            children: <Widget>[
+                                                              Text('330.2/Ltr',
+                                                                style: TextStyle(
+                                                                    color: Color(0xff0e4967)),),
+                                                              Text('316.5/Ltr',
+                                                                style: TextStyle(
+                                                                    color: Color(0xff0e4967)),),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  )
+                                              ),
+
+                                            ],
+                                          ),
+                                          SizedBox( height: 10,),
+                                          Row(
+                                            children: [
+                                              Expanded(
+                                                  child: Card(
+                                                    color: Color(0xffF0F0F0),
+                                                    child: Column(
+                                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                                      // Align content to the left
+                                                      children: <Widget>[
+                                                        Padding(
+                                                          padding: const EdgeInsets.all(8.0),
+                                                          child: Text(
+                                                            'NOZZLE PRICE',
+                                                            style: TextStyle(
+                                                              fontWeight: FontWeight.bold,
+                                                              color: Color(0xff0e4967),
+                                                              fontSize: 18.0,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                        Padding(
+                                                          padding: const EdgeInsets.all(8.0),
+                                                          child: Row(
+                                                            mainAxisAlignment: MainAxisAlignment
+                                                                .spaceBetween,
+                                                            children: <Widget>[
+                                                              Text(
+                                                                'PMG',
+                                                                style: TextStyle(
+                                                                  fontWeight: FontWeight.bold,
+                                                                  color: Color(0xff0e4967),),
+                                                              ),
+                                                              Text(
+                                                                'HSD',
+                                                                style: TextStyle(
+                                                                  fontWeight: FontWeight.bold,
+                                                                  color: Color(0xff0e4967),),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                        Padding(
+                                                          padding: const EdgeInsets.only(
+                                                              left: 8.0, right: 8.0, bottom: 8.0),
+                                                          child: Row(
+                                                            mainAxisAlignment: MainAxisAlignment
+                                                                .spaceBetween,
+                                                            children: <Widget>[
+                                                              Text('330.2/Ltr',
+                                                                style: TextStyle(
+                                                                    color: Color(0xff0e4967)),),
+                                                              Text('316.5/Ltr',
+                                                                style: TextStyle(
+                                                                    color: Color(0xff0e4967)),),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  )
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ) ,
+                                    );
+                                    }
+                                    */
+                                    },
+                                  child: Icon(
+                                    Icons.keyboard_arrow_down_outlined,
+                                    color: Color(0xffffffff),
+                                    size: 20.0,
+                                  ),
                                 ),
+
+
                               ],
                             ),
                             SizedBox(height: 20,),
@@ -169,7 +322,6 @@ class _HomeScreenState extends State<Home> {
                                         fontSize: 14,
                                         color: Color(0xffffffff),
                                         fontWeight: FontWeight.w600,
-                                        fontStyle: FontStyle.italic,
                                       ),
                                     ),
                                     Text(
@@ -204,35 +356,52 @@ class _HomeScreenState extends State<Home> {
                 children: <Widget>[
                   Column(
                     children: <Widget>[
-                      CircleAvatar(
-                        radius: 28, // Adjust the size of the circular avatar
-                        backgroundColor: Colors.white, // You can set the background color
-                        child: Image.asset('assets/images/engine-oil.png',width: 42,height: 42,),
-                      ),
-                      SizedBox(height: 8.0),
-                      Text("Lubricant",style: TextStyle(color: Colors.white),),
-                    ],
-                  ),
-
-                  Column(
-                    children: <Widget>[
-                      CircleAvatar(
-                        radius: 28, // Adjust the size of the circular avatar
-                        backgroundColor: Colors.white, // You can set the background color
-                        child: Image.asset('assets/images/completed-task.png',width: 42,height: 42,),
+                      GestureDetector(
+                        child: CircleAvatar(
+                          radius: 28, // Adjust the size of the circular avatar
+                          backgroundColor: Colors.white, // You can set the background color
+                          child: Image.asset('assets/images/completed-task.png',width: 42,height: 42,),
+                        ),
+                        onTap: () {
+                          // Navigate to the OrderScreen when tapped
+                          Navigator.of(context).push(MaterialPageRoute(builder: (context) => Orders()));
+                        },
                       ),
                       SizedBox(height: 8.0),
                       Text("Order",style: TextStyle(color: Colors.white),),
                     ],
                   ),
-
                   Column(
                     children: <Widget>[
-                      CircleAvatar(
-                        radius: 28, // Adjust the size of the circular avatar
-                        backgroundColor: Colors.white, // You can set the background color
-                        child: Image.asset('assets/images/coverall.png',width: 50,height: 50,),
+                      GestureDetector(
+                        child: CircleAvatar(
+                          radius: 28, // Adjust the size of the circular avatar
+                          backgroundColor: Colors.white, // You can set the background color
+                          child: Image.asset('assets/images/engine-oil.png',width: 42,height: 42,),
+                        ),
+                        onTap: () {
+                          // Navigate to the OrderScreen when tapped
+                          Navigator.of(context).push(MaterialPageRoute(builder: (context) => Lubricant()));
+                        },
                       ),
+                      SizedBox(height: 8.0),
+                      Text("Lubricant",style: TextStyle(color: Colors.white),),
+                    ],
+                  ),
+                  Column(
+                    children: <Widget>[
+                      GestureDetector(
+                        child: CircleAvatar(
+                          radius: 28, // Adjust the size of the circular avatar
+                          backgroundColor: Colors.white, // You can set the background color
+                          child: Image.asset('assets/images/coverall.png',width: 50,height: 50,),
+                        ),
+                        onTap: () {
+                          // Navigate to the OrderScreen when tapped
+                          Navigator.of(context).push(MaterialPageRoute(builder: (context) => Uniform()));
+                        },
+                      ),
+                      
                       SizedBox(height: 8.0),
                       Text("Uniforms", style: TextStyle(color: Colors.white),),
                     ],
@@ -300,7 +469,7 @@ class _HomeScreenState extends State<Home> {
                                         dataSource: ChartData,
                                         xValueMapper: (chartdata ch, _) => ch.x,
                                         yValueMapper: (chartdata ch, _) => ch.y3,
-                                        name: 'Total', // Legend label
+                                        name: 'HOBC', // Legend label
                                         color: Color(0xff6c6074), // Change the color of the bars
                                         borderRadius: const BorderRadius.only(
                                           topLeft: Radius.circular(10),
@@ -489,7 +658,7 @@ class _HomeScreenState extends State<Home> {
               ),
               BottomNavigationBarItem(
                   icon: Icon(FluentIcons.weather_sunny_16_regular, size: 20,),
-                  label: 'Orders',
+                  label: 'Complaint',
                   backgroundColor: Colors.white
               ),
               BottomNavigationBarItem(
@@ -515,7 +684,7 @@ class _HomeScreenState extends State<Home> {
     if (_selectedIndex == 1) {
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => Orders()),
+        MaterialPageRoute(builder: (context) => Complaints()),
       );
     }
     if (_selectedIndex == 2) {
@@ -533,5 +702,151 @@ class chartdata{
   final int y2;
   final int y3;
   chartdata(this.x,this.y1,this.y2,this.y3);
+}
+class CustomModal extends
+
+StatelessWidget
+
+{
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      child: Container(
+        height: 250,
+        width: MediaQuery.of(context).size.width,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          // Align content to the left
+                          children: <Widget>[
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text(
+                                'INDENT PRICE',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xff0e4967),
+                                  fontSize: 18.0,
+                                ),
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment
+                                    .spaceBetween,
+                                children: <Widget>[
+                                  Text(
+                                    'PMG',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xff0e4967),),
+                                  ),
+                                  Text(
+                                    'HSD',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xff0e4967),),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.only(
+                                  left: 8.0, right: 8.0, bottom: 8.0),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment
+                                    .spaceBetween,
+                                children: <Widget>[
+                                  Text('330.2/Ltr',
+                                    style: TextStyle(
+                                        color: Color(0xff0e4967)),),
+                                  Text('316.5/Ltr',
+                                    style: TextStyle(
+                                        color: Color(0xff0e4967)),),
+                                ],
+                              ),
+                            ),
+                          ],
+                        )
+                    ),
+
+                  ],
+                ),
+                SizedBox( height: 10,),
+                Row(
+                  children: [
+                    Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          // Align content to the left
+                          children: <Widget>[
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text(
+                                'NOZZLE PRICE',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xff0e4967),
+                                  fontSize: 18.0,
+                                ),
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment
+                                    .spaceBetween,
+                                children: <Widget>[
+                                  Text(
+                                    'PMG',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xff0e4967),),
+                                  ),
+                                  Text(
+                                    'HSD',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xff0e4967),),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.only(
+                                  left: 8.0, right: 8.0, bottom: 8.0),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment
+                                    .spaceBetween,
+                                children: <Widget>[
+                                  Text('330.2/Ltr',
+                                    style: TextStyle(
+                                        color: Color(0xff0e4967)),),
+                                  Text('316.5/Ltr',
+                                    style: TextStyle(
+                                        color: Color(0xff0e4967)),),
+                                ],
+                              ),
+                            ),
+                          ],
+                        )
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 

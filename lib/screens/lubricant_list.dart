@@ -1,3 +1,4 @@
+import 'package:dropdown_plus/dropdown_plus.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
@@ -5,21 +6,23 @@ import 'package:flutter_svg/svg.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hascol_dealer/screens/create_order.dart';
+import 'package:hascol_dealer/screens/create_order_lubricant.dart';
 import 'package:hascol_dealer/screens/home.dart';
 import 'package:hascol_dealer/screens/login.dart';
 import 'package:hascol_dealer/screens/profile.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
+import 'package:dropdown_textfield/dropdown_textfield.dart';
 
-class Orders extends StatefulWidget {
+class Lubricant extends StatefulWidget {
   static const Color contentColorOrange = Color(0xFF00705B);
   final Color leftBarColor = Color(0xFFCB6600);
   final Color rightBarColor = Color(0xFF5BECD2);
   @override
-  _OrdersState createState() => _OrdersState();
+  _LubricantState createState() => _LubricantState();
 }
 
-class _OrdersState extends State<Orders> {
+class _LubricantState extends State<Lubricant> {
   @override
   void initState() {
     super.initState();
@@ -45,7 +48,7 @@ class _OrdersState extends State<Orders> {
             },
           ),
           title: Text(
-            'Orders',
+            'Lubricant',
             style: GoogleFonts.montserrat(
                 fontWeight: FontWeight.w700,
                 fontStyle: FontStyle.normal,
@@ -57,9 +60,137 @@ class _OrdersState extends State<Orders> {
               padding: const EdgeInsets.all(8.0),
               child: ElevatedButton.icon(
                 onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => Create_Order()),
+                  showModalBottomSheet(
+                    context: context,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.vertical(top: Radius.circular(25.0)),
+                    ),
+                    builder: (BuildContext context) {
+                      return SingleChildScrollView(
+                          child: Padding(padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: Text(
+                                  'Lube Order Form',
+                                  style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: TextField(
+                                      decoration: InputDecoration(
+                                        labelText: 'Code',
+                                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(18.0),),
+
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(width: 10), // Add some spacing between the two text fields
+                                  Expanded(
+                                    child: TextField(
+                                      decoration: InputDecoration(
+                                        labelText: 'Pack Size (Ltrs & Kg)',
+                                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(18.0),),
+
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height:18,),
+                              TextDropdownFormField(
+                                options: ["Puma Intelu Supreme 15W40 CI-4 12*1L ", "Puma Intelu Supreme 15W40 CI-4 4*4L ",
+                                  "Puma Intelu Supreme 15W40 CI-4 2*10L ", "Puma Intelu Supreme"],
+                                decoration: InputDecoration(
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(18.0),
+                                  ),
+                                  suffixIcon: Icon(Icons.arrow_drop_down_circle_outlined),
+                                  labelText: "Grade",
+                                ),
+                                dropdownHeight: 220,
+                              ),
+                              SizedBox(height:18,),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: TextField(
+                                      decoration: InputDecoration(
+                                        labelText: 'Ctn Size (Ltrs)',
+                                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(18.0),),
+
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(width: 10), // Add some spacing between the two text fields
+                                  Expanded(
+                                    child: TextField(
+                                      decoration: InputDecoration(
+                                        labelText: 'Packs in CTN',
+                                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(18.0),),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height:18,),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: TextField(
+                                      decoration: InputDecoration(
+                                        labelText: 'Total Packs/pails/drums',
+                                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(18.0),),
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(width: 10), // Add some spacing between the two text fields
+                                  Expanded(
+                                    child: TextField(
+                                      decoration: InputDecoration(
+                                        labelText: 'Total Order in ltr',
+                                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(18.0),),
+
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height:18,),
+                              Container(
+                                child:Row(
+                                  children: [
+                                    Expanded(
+                                      child: ElevatedButton(
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(10.0),
+                                          child: Text(
+                                            'Create Order',
+                                            style: GoogleFonts.raleway(
+                                              fontWeight: FontWeight.w700,
+                                              fontStyle: FontStyle.normal,
+                                              fontSize: 16,
+                                            ),
+                                          ),
+                                        ),
+                                        style: ElevatedButton.styleFrom(
+                                          primary: Color(0xffe81329),
+                                        ),
+                                        onPressed: () {
+                                        },
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                      ),
+                        );
+                    },
                   );
                 },
                 icon: Icon(
@@ -71,7 +202,7 @@ class _OrdersState extends State<Orders> {
                   primary: Color(0xff3B8D5A), // Background color
                 ),
                 label: Text(
-                  'Create Order',
+                  'Lubricant Order',
                   style: GoogleFonts.montserrat(
                     fontSize: 10,
                     color: Colors.white,
