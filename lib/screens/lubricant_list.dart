@@ -62,11 +62,13 @@ class _LubricantState extends State<Lubricant> {
                 onPressed: () {
                   showModalBottomSheet(
                     context: context,
+                    isScrollControlled: true,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.vertical(top: Radius.circular(25.0)),
                     ),
                     builder: (BuildContext context) {
                       return SingleChildScrollView(
+                        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
                           child: Padding(padding: const EdgeInsets.all(16.0),
                           child: Column(
                             children: [

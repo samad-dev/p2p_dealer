@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -22,47 +23,50 @@ class _LoginState extends State<Login> {
   Future<void> _login(BuildContext context) async {
     final email = _emailController.text;
     final password = _passwordController.text;
-    if (_passwordController.text.toString() != '' &&
-        _passwordController.text.toString() != '') {
-      print('here');
-      var request = http.Request('GET', Uri.parse(
-          'http://151.106.17.246:8000/api/login/${email}/${password}'));
-      http.StreamedResponse response = await request.send();
-      final json = await response.stream.bytesToString();
 
-      Map<String, dynamic> jsons = jsonDecode(json);
-      print("Samad" + jsons.length.toString());
-      if (jsons.length > 0) {
-        if (jsons["role"] == 'Inspector') {
-          final prefs = await SharedPreferences.getInstance();
-          prefs.setBool('isLoggedIn', true);
-          print(jsons['id']);
-          prefs.setString("userId", jsons["id"].toString());
-          prefs.setString("username", jsons["name"].toString());
-          prefs.setString("email", jsons["email"].toString());
-          prefs.setString("role", jsons["role"].toString());
-          Navigator.pushReplacement<void, void>(
-            context,
-            MaterialPageRoute<void>(
-              builder: (BuildContext context) => Home(),
-            ),
-          );
-          // Navigator.pushNamed(context, 'Dashboard');
-        }
-        else {
-          Fluttertoast.showToast(
-              msg: "You are not Allowed to Login here",
-              toastLength: Toast.LENGTH_SHORT,
-              gravity: ToastGravity.SNACKBAR,
-              timeInSecForIosWeb: 1,
-              backgroundColor: Colors.red,
-              textColor: Colors.white,
-              fontSize: 16.0
-          );
-        }
+    if (email.isEmpty || password.isEmpty) {
+      Fluttertoast.showToast(
+          msg: "Please Fill Credentials",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.SNACKBAR,
+          timeInSecForIosWeb: 1,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          fontSize: 16.0
+      );
+      return;
+    }
+
+    final url = Uri.parse(
+        'http://151.106.17.246:8080/OMCS-CMS-APIS/get/dealer_login.php?key=03201232927&username=$email&password=$password');
+
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      final jsons = json.decode(response.body);
+
+      if (jsons.isNotEmpty) {
+        final prefs = await SharedPreferences.getInstance();
+        prefs.setBool('isLoggedIn', true);
+        print(jsons[0]['name']);
+        prefs.setString("Id", jsons[0]["id"]);
+        prefs.setString("name", jsons[0]["name"].toString());
+        prefs.setString("contact", jsons[0]["contact"].toString());
+        prefs.setString("email", jsons[0]["email"].toString());
+        prefs.setString("location", jsons[0]["location"].toString());
+        prefs.setString("co_ordinates", jsons[0]["co_ordinates"].toString());
+        prefs.setString("housekeeping", jsons[0]["housekeeping"].toString());
+        prefs.setString("no_lorries", jsons[0]["no_lorries"].toString());
+        prefs.setString("type", jsons[0]["type"].toString());
+        prefs.setString("banner", jsons[0]["banner"].toString());
+        prefs.setString("logo", jsons[0]["logo"].toString());
+        prefs.setString("indent_price", jsons[0]["indent_price"].toString());
+        prefs.setString("Nozel_price", jsons[0]["Nozel_price"].toString());
+        Navigator.pushReplacement<void, void>(context,MaterialPageRoute<void>(builder: (BuildContext context) => Home(),),);
       } else {
+        // Incorrect credentials
         Fluttertoast.showToast(
-            msg: "Incorrect Credentials Please Try Again",
+            msg: "Incorrect Credentials. Please Try Again",
             toastLength: Toast.LENGTH_SHORT,
             gravity: ToastGravity.SNACKBAR,
             timeInSecForIosWeb: 1,
@@ -71,10 +75,10 @@ class _LoginState extends State<Login> {
             fontSize: 16.0
         );
       }
-    }
-    else {
+    } else {
+      // Handle the HTTP error
       Fluttertoast.showToast(
-          msg: "Please Fill Credentials",
+          msg: "HTTP Request Failed",
           toastLength: Toast.LENGTH_SHORT,
           gravity: ToastGravity.SNACKBAR,
           timeInSecForIosWeb: 1,
@@ -85,11 +89,10 @@ class _LoginState extends State<Login> {
     }
   }
 
-  /*
   void initState() {
     super.initState();
     // getValue();
-  }*/
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -291,13 +294,8 @@ class _LoginState extends State<Login> {
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.0)),
                               ),
                               onPressed: () {
-                               // _login(context);//
-                                Navigator.pushReplacement<void, void>(
-                                context,
-                                MaterialPageRoute<void>(
-                                builder: (BuildContext context) => Home(),
-                                ),
-                                );
+                               _login(context);
+                               //Navigator.pushReplacement<void, void>(context,MaterialPageRoute<void>(builder: (BuildContext context) => Home(),),);
                               },
                             ),
                           ),
@@ -337,36 +335,4 @@ class _LoginState extends State<Login> {
       ),
     );
   }
-/*void getValue() async {
-    var prefs = await SharedPreferences.getInstance();
-    var getName = (prefs.getString("userId") ?? "");
-    // nameValue = getName != null ? getName : "No Value Saved ";
-    if (getName == "") {
-      Timer(Duration(seconds: 3), () {
-
-        Navigator.pushReplacement<void, void>(
-          context,
-          MaterialPageRoute<void>(
-            builder: (BuildContext context) =>
-                Home(),
-          ),
-        );
-      });
-    } else {
-      Timer(Duration(seconds: 3), () {
-
-        Navigator.pushReplacement<void, void>(
-          context,
-          MaterialPageRoute<void>(
-            builder: (BuildContext context) =>
-                MyHomePage(),
-          ),
-        );
-      });
-
-    }
-    setState(() {
-
-    });
-  }*/
 }

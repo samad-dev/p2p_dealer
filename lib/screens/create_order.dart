@@ -21,6 +21,9 @@ class Create_Order extends StatefulWidget {
 }
 
 class _CreateOrderState extends State<Create_Order> {
+  late Future<List<Map<String, dynamic>>?> data1;
+  List<int> product_values1 = [];
+  List<TextEditingController> controllers = [];
   int hsd = 350;
   int hobc = 330;
   int pmg = 332;
@@ -40,8 +43,27 @@ class _CreateOrderState extends State<Create_Order> {
   void initState() {
     super.initState();
     this.getDepot();
+    data1 = fetchData();
   }
+  Future<List<Map<String, dynamic>>?> fetchData() async {
+    final url = Uri.parse("http://151.106.17.246:8080/OMCS-CMS-APIS/get/dealers_products.php?key=03201232927&dealer_id=3");
 
+    try {
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final List<dynamic> jsonResponse = json.decode(response.body);
+        List<Map<String, dynamic>> data = jsonResponse.cast<Map<String, dynamic>>();
+        return data;
+      } else {
+        // Handle the error, e.g., show an error message
+        return null;
+      }
+    } catch (exception) {
+      // Handle exceptions
+      return null;
+    }
+  }
   int _selectedIndex = 1;
   @override
   Widget build(BuildContext context) {
@@ -153,6 +175,142 @@ class _CreateOrderState extends State<Create_Order> {
             SizedBox(
               height: 20,
             ),
+            FutureBuilder<List<Map<String, dynamic>>?>(
+              future: data1,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return CircularProgressIndicator();
+                } else if (snapshot.hasError) {
+                  return Text('Error: ${snapshot.error}');
+                } else if (!snapshot.hasData || snapshot.data == null) {
+                  return Text('No data available.');
+                } else {
+                  List<Map<String, dynamic>> apiData = snapshot.data!;
+                  List<int> product_values = List.filled(apiData.length, 0);
+
+                  // Ensure that controllers has the same length as apiData
+                  if (controllers.length < apiData.length) {
+                    controllers.addAll(List.generate(apiData.length - controllers.length, (index) => TextEditingController()));
+                  }
+
+                  return ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: apiData.length,
+                    physics: NeverScrollableScrollPhysics(),
+                    itemBuilder: (context, index) {
+                      return Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Flexible(
+                              child: SizedBox(
+                                width: 150,
+                                child: TextFormField(
+                                  onFieldSubmitted: (value) {
+                                    if (value.isNotEmpty) {
+                                      setState(() {
+                                        int v1 = int.parse(value) * int.parse("${apiData[index]['indent_price']}");
+                                        product_values[index] = v1;
+                                        hsdt=int.parse(value);
+                                      });
+                                    } else {
+                                      print("Enter value");
+                                    }
+                                  },
+                                  onTapOutside: (value) {
+                                    print(value);
+                                  },
+                                  controller: controllers[index],
+                                  keyboardType: TextInputType.number,
+                                  style: GoogleFonts.poppins(
+                                    color: Color(0xffa8a8a8),
+                                    fontWeight: FontWeight.w300,
+                                    fontSize: 16,
+                                    fontStyle: FontStyle.normal,
+                                  ),
+                                  decoration: InputDecoration(
+                                    hintStyle: GoogleFonts.poppins(
+                                      color: Color(0xffa8a8a8),
+                                      fontWeight: FontWeight.w300,
+                                      fontSize: 16,
+                                      fontStyle: FontStyle.normal,
+                                    ),
+                                    labelStyle: GoogleFonts.poppins(
+                                      color: Color(0xffa8a8a8),
+                                      fontWeight: FontWeight.w300,
+                                      fontSize: 16,
+                                      fontStyle: FontStyle.normal,
+                                    ),
+                                    filled: true,
+                                    fillColor: Color(0xffF1F4FF),
+                                    hintText: 'Quantity for ${apiData[index]['name']}',
+                                    focusedBorder: OutlineInputBorder(
+                                        borderSide:
+                                        BorderSide(width: 2, color: Color(0xff3b5fe0)),
+                                        borderRadius:
+                                        BorderRadius.all(Radius.circular(10))),
+                                    border: OutlineInputBorder(
+                                        borderSide:
+                                        BorderSide(width: 2, color: Color(0xffF1F4FF)),
+                                        borderRadius:
+                                        BorderRadius.all(Radius.circular(10))),
+                                    labelText: '${apiData[index]['name']}',
+                                  ),
+                                ),
+                              ),
+                            ),
+                            SizedBox(
+                              width: 15,
+                            ),
+                            Container(
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                "x",
+                                style: TextStyle(fontSize: 13),
+                              ),
+                            ),
+                            SizedBox(
+                              width: 15,
+                            ),
+                            Container(
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                '${apiData[index]['indent_price']}',
+                                style: TextStyle(fontSize: 13),
+                              ),
+                            ),
+                            SizedBox(
+                              width: 15,
+                            ),
+                            Container(
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                "=",
+                                style: TextStyle(fontSize: 13),
+                              ),
+                            ),
+                            SizedBox(
+                              width: 15,
+                            ),
+                            Container(
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                product_values[index].toString(),
+                                style: TextStyle(fontSize: 13),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+
+                  );
+                }
+              },
+            ),
+            /*
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -447,6 +605,7 @@ class _CreateOrderState extends State<Create_Order> {
                 ),
               ],
             ),
+            */
             SizedBox(height: 10),
             Container(
               padding: EdgeInsets.symmetric(horizontal: 10.0),
