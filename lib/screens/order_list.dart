@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:fl_chart/fl_chart.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
@@ -10,6 +12,7 @@ import 'package:hascol_dealer/screens/login.dart';
 import 'package:hascol_dealer/screens/profile.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
+import 'package:http/http.dart' as http;
 
 class Orders extends StatefulWidget {
   static const Color contentColorOrange = Color(0xFF00705B);
@@ -23,9 +26,28 @@ class _OrdersState extends State<Orders> {
   @override
   void initState() {
     super.initState();
+    fetchData();
   }
 
   int _selectedIndex = 1;
+
+  create() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var id = prefs.getString("Id");
+  }
+  Future<List<Map<String, dynamic>>?> fetchData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var id = prefs.getString("Id");
+    final response = await http.get(Uri.parse('http://151.106.17.246:8080/OMCS-CMS-APIS/get/dealer_orders.php?key=03201232927&id=${id}'));
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      return List<Map<String, dynamic>>.from(data);
+    } else {
+      throw Exception('Failed to fetch data');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     DateTime now = DateTime.now();
@@ -110,225 +132,432 @@ class _OrdersState extends State<Orders> {
               SizedBox(
                 height: 10,
               ),
-              Card(
-                elevation: 10,
-                color: Color(0xffF0F0F0),
-                child: Container(
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Order Num #',
-                              style: GoogleFonts.montserrat(
-                                  fontWeight: FontWeight.w600,
-                                  fontStyle: FontStyle.normal,
-                                  color: Color(0xff12283D),
-                                  fontSize: 16),
-                            ),
-                            Text(
-                              'Quantity: 23000 Ltr.',
-                              style: GoogleFonts.montserrat(
-                                  fontWeight: FontWeight.w200,
-                                  fontStyle: FontStyle.normal,
-                                  color: Color(0xff737373),
-                                  fontSize: 12),
-                            ),
-                            Text(
-                              '54,000 Rs.',
-                              style: GoogleFonts.montserrat(
-                                  fontWeight: FontWeight.w600,
-                                  fontStyle: FontStyle.normal,
-                                  color: Color(0xff3B8D5A),
-                                  fontSize: 12),
-                            ),
-                            SizedBox(
-                              height: 32,
-                            ),
-                            Text(
-                              '9/20/2023  5:00 PM',
-                              style: GoogleFonts.montserrat(
-                                  fontWeight: FontWeight.w300,
-                                  fontStyle: FontStyle.normal,
-                                  color: Color(0xff9b9b9b),
-                                  fontSize: 12),
-                            ),
-                          ],
-                        ),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Card(
-                              color: Color(0xffFFF3D4),
-                              child: Padding(
-                                padding: const EdgeInsets.all(3.0),
-                                child: Text(
-                                  'In Progress',
-                                  style: GoogleFonts.poppins(
-                                      fontWeight: FontWeight.w500,
-                                      fontStyle: FontStyle.normal,
-                                      color: Color(0xffE7AD18),
-                                      fontSize: 12),
-                                ),
-                              ),
-                            ),
-                            Text(
-                              'Waiting For Approval',
-                              style: GoogleFonts.montserrat(
-                                  fontWeight: FontWeight.w300,
-                                  fontStyle: FontStyle.normal,
-                                  color: Color(0xff9b9b9b),
-                                  fontSize: 12),
-                            ),
-                            SizedBox(
-                              height: 3,
-                            ),
-                            SizedBox(
-                              width: 90,
-                              height: 20,
-                              child: ElevatedButton(
-                                child: Text(
-                                  'Shortage',
-                                  style: GoogleFonts.poppins(
-                                    fontWeight: FontWeight.w100,
-                                    fontSize: 11,
-                                    fontStyle: FontStyle.normal,
+              FutureBuilder<List<Map<String, dynamic>>?>(
+                future: fetchData(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return CircularProgressIndicator();
+                  } else if (snapshot.hasError) {
+                    return Text('Error: ${snapshot.error}');
+                  } else if (!snapshot.hasData || snapshot.data == null) {
+                    return Text('No data available.');
+                  } else {
+                    List<Map<String, dynamic>> apiData = snapshot.data!;
+                    return ListView(
+                      shrinkWrap: true,
+                      physics: NeverScrollableScrollPhysics(),
+                      children: apiData.map((item) {
+                        final orderNumber = item["id"];
+                        final totalAmount = item['total_amount'];
+                        final created_at = item['created_at'];
+                        final productJsonString = item["product_json"];
+                        final List<Map<String, dynamic>> products = List<Map<String, dynamic>>.from(json.decode(productJsonString));
+
+                        return Card(
+                          elevation: 10,
+                          color: Color(0xffF0F0F0),
+                          child: Container(
+                            child: Column(
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.all(7.0),
+                                  child: Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'Order Num # $orderNumber',
+                                            style: GoogleFonts.montserrat(
+                                              fontWeight: FontWeight.w600,
+                                              fontStyle: FontStyle.normal,
+                                              color: Color(0xff12283D),
+                                              fontSize: 16,
+                                            ),
+                                          ),
+                                          Text(
+                                            'Quantity: 23000 Ltr.',
+                                            style: GoogleFonts.montserrat(
+                                              fontWeight: FontWeight.w200,
+                                              fontStyle: FontStyle.normal,
+                                              color: Color(0xff737373),
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                          Text(
+                                            'PKR. $totalAmount',
+                                            style: GoogleFonts.montserrat(
+                                              fontWeight: FontWeight.w600,
+                                              fontStyle: FontStyle.normal,
+                                              color: Color(0xff3B8D5A),
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                          SizedBox(
+                                            height: 32,
+                                          ),
+                                          Text(
+                                            '$created_at',
+                                            style: GoogleFonts.montserrat(
+                                              fontWeight: FontWeight.w300,
+                                              fontStyle: FontStyle.normal,
+                                              color: Color(0xff9b9b9b),
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      Column(
+                                        crossAxisAlignment: CrossAxisAlignment.end,
+                                        children: [
+                                          Card(
+                                            color: Color(0xffFFF3D4),
+                                            child: Padding(
+                                              padding: const EdgeInsets.all(3.0),
+                                              child: Text(
+                                                'In Progress',
+                                                style: GoogleFonts.poppins(
+                                                  fontWeight: FontWeight.w500,
+                                                  fontStyle: FontStyle.normal,
+                                                  color: Color(0xffE7AD18),
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          Text(
+                                            'Waiting For Approval',
+                                            style: GoogleFonts.montserrat(
+                                              fontWeight: FontWeight.w300,
+                                              fontStyle: FontStyle.normal,
+                                              color: Color(0xff9b9b9b),
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                          SizedBox(
+                                            height: 3,
+                                          ),
+                                          SizedBox(
+                                            width: 90,
+                                            height: 20,
+                                            child: ElevatedButton(
+                                              child: Text(
+                                                'Shortage',
+                                                style: GoogleFonts.poppins(
+                                                  fontWeight: FontWeight.w100,
+                                                  fontSize: 11,
+                                                  fontStyle: FontStyle.normal,
+                                                ),
+                                              ),
+                                              style: ElevatedButton.styleFrom(
+                                                primary: Color(0xff12283D),
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius: BorderRadius.circular(18.0),
+                                                ),
+                                              ),
+                                              onPressed: () {
+                                                showModalBottomSheet(
+                                                  context: context,
+                                                  builder: (context) {
+                                                    return Container(
+                                                      color: Colors.white54,
+                                                      child: Column(
+                                                        children: [
+                                                          SizedBox(height: 30),
+                                                          Icon(
+                                                            FontAwesomeIcons.cameraRetro,
+                                                            color: Color(0xff12283d),
+                                                            size: 160,
+                                                          ),
+                                                          Text(
+                                                            'Click Here To Upload Photos',
+                                                            style: GoogleFonts.poppins(
+                                                              fontWeight: FontWeight.w500,
+                                                              fontSize: 16,
+                                                              fontStyle: FontStyle.normal,
+                                                            ),
+                                                          ),
+                                                          Padding(
+                                                            padding: const EdgeInsets.all(18.0),
+                                                            child: SizedBox(
+                                                              height: 50,
+                                                              child: TextFormField(
+                                                                onFieldSubmitted: (value) {
+                                                                  print(value);
+                                                                },
+                                                                keyboardType: TextInputType.number,
+                                                                style: GoogleFonts.poppins(
+                                                                  color: Color(0xffa8a8a8),
+                                                                  fontWeight: FontWeight.w300,
+                                                                  fontSize: 16,
+                                                                  fontStyle: FontStyle.normal,
+                                                                ),
+                                                                decoration: InputDecoration(
+                                                                  hintStyle: GoogleFonts.poppins(
+                                                                    color: Color(0xffa8a8a8),
+                                                                    fontWeight: FontWeight.w300,
+                                                                    fontSize: 16,
+                                                                    fontStyle: FontStyle.normal,
+                                                                  ),
+                                                                  labelStyle: GoogleFonts.poppins(
+                                                                    color: Color(0xffa8a8a8),
+                                                                    fontWeight: FontWeight.w300,
+                                                                    fontSize: 16,
+                                                                    fontStyle: FontStyle.normal,
+                                                                  ),
+                                                                  filled: true,
+                                                                  fillColor: Color(0xffF1F4FF),
+                                                                  hintText: 'Received',
+                                                                  focusedBorder: OutlineInputBorder(
+                                                                    borderSide: BorderSide(
+                                                                      width: 2,
+                                                                      color: Color(0xff3b5fe0),
+                                                                    ),
+                                                                    borderRadius: BorderRadius.all(Radius.circular(10)),
+                                                                  ),
+                                                                  border: OutlineInputBorder(
+                                                                    borderSide: BorderSide(
+                                                                      width: 2,
+                                                                      color: Color(0xffF1F4FF),
+                                                                    ),
+                                                                    borderRadius: BorderRadius.all(Radius.circular(10)),
+                                                                  ),
+                                                                  labelText: 'Received Qty',
+                                                                ),
+                                                              ),
+                                                            ),
+                                                          ),
+                                                          Padding(
+                                                            padding: EdgeInsets.only(top: 20),
+                                                            child: MaterialButton(
+                                                              onPressed: () {},
+                                                              child: Text(
+                                                                'Add Shortage',
+                                                                style: TextStyle(
+                                                                  fontSize: 15,
+                                                                  fontFamily: 'SFUIDisplay',
+                                                                  fontWeight: FontWeight.bold,
+                                                                  color: Colors.white,
+                                                                ),
+                                                              ),
+                                                              color: Color(0xff12283d),
+                                                              elevation: 0,
+                                                              minWidth: 350,
+                                                              height: 60,
+                                                              shape: RoundedRectangleBorder(
+                                                                borderRadius: BorderRadius.circular(10),
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    );
+                                                  },
+                                                );
+                                              },
+                                            ),
+                                          ),
+                                          TextButton.icon(
+                                            // <-- TextButton
+                                            onPressed: () {},
+                                            icon: Icon(
+                                              FluentIcons.drawer_arrow_download_24_regular,
+                                              size: 16.0,
+                                              color: Color(0xff12283D),
+                                            ),
+                                            label: Text(
+                                              'Invoice',
+                                              style: GoogleFonts.montserrat(
+                                                fontWeight: FontWeight.w300,
+                                                fontStyle: FontStyle.normal,
+                                                color: Color(0xff12283D),
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
                                   ),
                                 ),
-                                style: ElevatedButton.styleFrom(
-                                    primary: Color(0xff12283D),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(18.0),
-                                    )),
-                                onPressed: () {
-                                  showModalBottomSheet(
-                                    context: context,
-                                    builder: (context) {
-                                      return Container(
-                                        color: Colors.white54,
-                                        child: Column(
-                                          children: [
-                                            SizedBox(height: 30,),
-                                            Icon(
-                                              FontAwesomeIcons.cameraRetro,
-                                              color: Color(0xff12283d),
-                                              size: 160,
-                                            ),
-                                            Text(
-                                              'Click Here To Upload Photos',
-                                              style: GoogleFonts.poppins(
-                                                fontWeight: FontWeight.w500,
-                                                fontSize: 16,
-                                                fontStyle: FontStyle.normal,
-                                              ),
-                                            ),
-                                            Padding(
-                                              padding: const EdgeInsets.all(18.0),
-                                              child: SizedBox(
-                                                height: 50,
-                                                child: TextFormField(
-
-                                                  onFieldSubmitted: (value) {
-                                                    print(value);
-
-                                                  },
-                                                  keyboardType: TextInputType.number,
-                                                  style: GoogleFonts.poppins(
-                                                    color: Color(0xffa8a8a8),
-                                                    fontWeight: FontWeight.w300,
-                                                    fontSize: 16,
-                                                    fontStyle: FontStyle.normal,
-                                                  ),
-                                                  decoration: InputDecoration(
-                                                    hintStyle: GoogleFonts.poppins(
-                                                      color: Color(0xffa8a8a8),
-                                                      fontWeight: FontWeight.w300,
-                                                      fontSize: 16,
-                                                      fontStyle: FontStyle.normal,
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Container(
+                                        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+                                        child: TextButton(
+                                          onPressed: () {
+                                            // Show a pop-up card for order details
+                                            showModalBottomSheet(
+                                              context: context,
+                                              builder: (context) {
+                                                return Card(
+                                                  elevation: 10,
+                                                  color: Colors.white, // Customize the color as needed
+                                                  child: Padding(
+                                                    padding: const EdgeInsets.all(8.0),
+                                                    child: Column(
+                                                      children: [
+                                                        // Add the content for the pop-up card here
+                                                        // You can display order details or any other information.
+                                                        Text(
+                                                          'Order Details',
+                                                          style: TextStyle(
+                                                            fontWeight: FontWeight.bold,
+                                                            fontSize: 16,
+                                                            fontStyle: FontStyle.normal,
+                                                          ),
+                                                        ),
+                                                        Row(
+                                                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                                          children: [
+                                                            Text(
+                                                              'Temp Order Num# $orderNumber',
+                                                              style: TextStyle(
+                                                                fontWeight: FontWeight.bold,
+                                                                fontSize: 16,
+                                                                fontStyle: FontStyle.normal,
+                                                              ),
+                                                            ),
+                                                            Text(
+                                                              'Type: Self',
+                                                              style: TextStyle(
+                                                                fontWeight: FontWeight.bold,
+                                                                fontSize: 16,
+                                                                fontStyle: FontStyle.normal,
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                        SizedBox(height: 20,),
+                                                        Row(
+                                                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                                          children: [
+                                                            Text(
+                                                              'Product Name',
+                                                              style: TextStyle(
+                                                                fontWeight: FontWeight.bold,
+                                                                fontSize: 16,
+                                                                fontStyle: FontStyle.normal,
+                                                              ),
+                                                            ),
+                                                            Text(
+                                                              'Quantity',
+                                                              style: TextStyle(
+                                                                fontWeight: FontWeight.bold,
+                                                                fontSize: 16,
+                                                                fontStyle: FontStyle.normal,
+                                                              ),
+                                                            ),
+                                                            Text(
+                                                              'Indent Price',
+                                                              style: TextStyle(
+                                                                fontWeight: FontWeight.bold,
+                                                                fontSize: 16,
+                                                                fontStyle: FontStyle.normal,
+                                                              ),
+                                                            ),
+                                                            Text(
+                                                              'Amount',
+                                                              style: TextStyle(
+                                                                fontWeight: FontWeight.bold,
+                                                                fontSize: 16,
+                                                                fontStyle: FontStyle.normal,
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                        SizedBox(height: 15,),
+                                                        Row(
+                                                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                                          children: [
+                                                            Text(
+                                                              'Product Name',
+                                                              style: TextStyle(
+                                                                fontWeight: FontWeight.bold,
+                                                                fontSize: 16,
+                                                                fontStyle: FontStyle.normal,
+                                                              ),
+                                                            ),
+                                                            Text(
+                                                              'Quantity',
+                                                              style: TextStyle(
+                                                                fontWeight: FontWeight.bold,
+                                                                fontSize: 16,
+                                                                fontStyle: FontStyle.normal,
+                                                              ),
+                                                            ),
+                                                            Text(
+                                                              'Indent Price',
+                                                              style: TextStyle(
+                                                                fontWeight: FontWeight.bold,
+                                                                fontSize: 16,
+                                                                fontStyle: FontStyle.normal,
+                                                              ),
+                                                            ),
+                                                            Text(
+                                                              'Amount',
+                                                              style: TextStyle(
+                                                                fontWeight: FontWeight.bold,
+                                                                fontSize: 16,
+                                                                fontStyle: FontStyle.normal,
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                        SizedBox(height: 20,),
+                                                        Row(
+                                                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                                          children: [
+                                                            Text(
+                                                              'Total Price',
+                                                              style: TextStyle(
+                                                                fontWeight: FontWeight.bold,
+                                                                fontSize: 16,
+                                                                fontStyle: FontStyle.normal,
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                        // Add other order details here...
+                                                      ],
                                                     ),
-                                                    labelStyle: GoogleFonts.poppins(
-                                                      color: Color(0xffa8a8a8),
-                                                      fontWeight: FontWeight.w300,
-                                                      fontSize: 16,
-                                                      fontStyle: FontStyle.normal,
-                                                    ),
-                                                    filled: true,
-                                                    fillColor: Color(0xffF1F4FF),
-                                                    hintText: 'Recieved',
-                                                    focusedBorder: OutlineInputBorder(
-                                                        borderSide:
-                                                        BorderSide(width: 2, color: Color(0xff3b5fe0)),
-                                                        borderRadius:
-                                                        BorderRadius.all(Radius.circular(10))),
-                                                    border: OutlineInputBorder(
-                                                        borderSide:
-                                                        BorderSide(width: 2, color: Color(0xffF1F4FF)),
-                                                        borderRadius:
-                                                        BorderRadius.all(Radius.circular(10))),
-                                                    labelText: 'Recieved Qty',
                                                   ),
-                                                ),
-                                              ),
+                                                );
+                                              },
+                                            );
+                                          },
+                                          style: TextButton.styleFrom(
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(20.0), // Adjust the value to control the border curvature
                                             ),
-                                            Padding(
-                                              padding: EdgeInsets.only(top: 20),
-                                              child: MaterialButton(
-                                                onPressed: () {
-
-                                                },
-                                                child: Text(
-                                                  'Add Shortage',
-                                                  style: TextStyle(
-                                                      fontSize: 15,
-                                                      fontFamily: 'SFUIDisplay',
-                                                      fontWeight: FontWeight.bold,
-                                                      color: Colors.white),
-                                                ),
-                                                color: Color(0xff12283d),
-                                                elevation: 0,
-                                                minWidth: 350,
-                                                height: 60,
-                                                shape: RoundedRectangleBorder(
-                                                    borderRadius: BorderRadius.circular(10)),
-                                              ),
+                                            backgroundColor: Color(0xff12283D), // Background color of the button
+                                          ),// Background color of the button
+                                          child: Text(
+                                            'Order Detail',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.w600,
+                                              fontSize: 18,
+                                              color: Colors.white,
                                             ),
-                                          ],
+                                          ),
                                         ),
-                                      );
-                                    },
-                                  );
-                                },
-                              ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
-                            TextButton.icon(
-                              // <-- TextButton
-                              onPressed: () {},
-                              icon: Icon(
-                                FluentIcons.drawer_arrow_download_24_regular,
-                                size: 16.0,
-                                color: Color(0xff12283D),
-                              ),
-                              label: Text(
-                                'Invoice',
-                                style: GoogleFonts.montserrat(
-                                    fontWeight: FontWeight.w300,
-                                    fontStyle: FontStyle.normal,
-                                    color: Color(0xff12283D),
-                                    fontSize: 12),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              )
+                          ),
+                        );
+                      }).toList(),
+                    );
+                  }
+                },
+              ),
+
             ],
           ),
         )),
