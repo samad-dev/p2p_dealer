@@ -4,6 +4,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hascol_dealer/screens/home.dart';
@@ -22,9 +23,12 @@ class Create_Order extends StatefulWidget {
 
 class _CreateOrderState extends State<Create_Order> {
   late Future<List<Map<String, dynamic>>?> data1;
+  List<dynamic>? sapi;
   List<int> product_values1 = [];
   List<TextEditingController> controllers = [];
-  int hsd = 350;
+  late List<int> hsdtValues;
+  int? total ;
+  int hsd=0;
   int hobc = 330;
   int pmg = 332;
   int hsdt = 0;
@@ -32,12 +36,75 @@ class _CreateOrderState extends State<Create_Order> {
   int pmgt = 0;
   List data = [];
   String? _mySelection;
+  String? account;
   TextEditingController hsdController = new TextEditingController();
   TextEditingController pmgController = new TextEditingController();
   TextEditingController hobcController = new TextEditingController();
   TextEditingController depotController = new TextEditingController();
   TextEditingController tlController = new TextEditingController();
   var _site = "Self";
+  int sum=0;
+  void updateSum() {
+    sum=0;
+    List<int> numbers = hsdtValues;
+     sum = numbers.reduce((value, element) => value + element);
+
+    print("Sum: $sum");
+  }
+
+  create() async{
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var id = prefs.getString("Id");
+    List<Map<String, dynamic>> jsonArray = [];
+    for(int i=0;i<hsdtValues.length;i++)
+      {
+        print('Moiz:====${controllers[i].text.toString()}');
+        print('Moiz2:====${sapi?[i]['indent_price']}');
+        Map<String, dynamic> jsonObject = {
+          'p_id': '${sapi?[i]['id']}',
+          'quantity': controllers[i].text.toString(),
+          'indent_price':'${sapi?[i]['indent_price']}',
+          'product_name':'${sapi?[i]['name']}',
+          'amount':hsdtValues[i],
+        };
+        jsonArray.add(jsonObject);
+
+      }
+    // Convert the array to a JSON string
+    String jsonString = json.encode(jsonArray);
+
+    // Print the JSON string
+    print(jsonString);
+    var request = http.MultipartRequest('POST', Uri.parse('http://151.106.17.246:8080/OMCS-CMS-APIS/create/create_dealers_orders.php'));
+    request.fields.addAll({
+      'dealer_id': '${id}',
+      'row_id': '',
+      'depot': '${_mySelection}',
+      'type': '${_site}',
+      'tl_no': '${tlController.text.toString()}',
+      'total': '${sum}',
+      'product': '${jsonString}'
+    });
+    http.StreamedResponse response = await request.send();
+
+    if (response.statusCode == 200) {
+      var ret = await response.stream.bytesToString();
+      if(ret=='1')
+        {
+          Fluttertoast.showToast(msg: 'Order Created Successfully',backgroundColor: Colors.greenAccent,textColor: Colors.black);
+          Navigator.pop(context);
+        }
+      else
+        {
+          Fluttertoast.showToast(msg: 'Order Not Created',backgroundColor: Colors.redAccent,textColor: Colors.white);
+        }
+      print(await response.stream.bytesToString());
+    }
+    else {
+      print(response.reasonPhrase);
+    }
+
+  }
 
   @override
   void initState() {
@@ -46,14 +113,22 @@ class _CreateOrderState extends State<Create_Order> {
     data1 = fetchData();
   }
   Future<List<Map<String, dynamic>>?> fetchData() async {
-    final url = Uri.parse("http://151.106.17.246:8080/OMCS-CMS-APIS/get/dealers_products.php?key=03201232927&dealer_id=3");
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var id = prefs.getString("Id");
+    account = prefs.getString("account");
+
+    final url = Uri.parse("http://151.106.17.246:8080/OMCS-CMS-APIS/get/dealers_products.php?key=03201232927&dealer_id=${id}");
 
     try {
       final response = await http.get(url);
 
       if (response.statusCode == 200) {
         final List<dynamic> jsonResponse = json.decode(response.body);
+        print(jsonResponse);
+        sapi = jsonResponse;
         List<Map<String, dynamic>> data = jsonResponse.cast<Map<String, dynamic>>();
+        print('Samad ${data.length}');
+        hsdtValues =  List.filled(data.length, 0);
         return data;
       } else {
         // Handle the error, e.g., show an error message
@@ -143,7 +218,7 @@ class _CreateOrderState extends State<Create_Order> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                '3,75,000 Rs.',
+                                'PKR. ${account}',
                                 style: GoogleFonts.poppins(
                                   fontSize: 14,
                                   color: Color(0xff000000),
@@ -176,6 +251,7 @@ class _CreateOrderState extends State<Create_Order> {
               height: 20,
             ),
             FutureBuilder<List<Map<String, dynamic>>?>(
+
               future: data1,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
@@ -186,13 +262,12 @@ class _CreateOrderState extends State<Create_Order> {
                   return Text('No data available.');
                 } else {
                   List<Map<String, dynamic>> apiData = snapshot.data!;
-                  List<int> product_values = List.filled(apiData.length, 0);
+
 
                   // Ensure that controllers has the same length as apiData
                   if (controllers.length < apiData.length) {
                     controllers.addAll(List.generate(apiData.length - controllers.length, (index) => TextEditingController()));
                   }
-
                   return ListView.builder(
                     shrinkWrap: true,
                     itemCount: apiData.length,
@@ -211,9 +286,22 @@ class _CreateOrderState extends State<Create_Order> {
                                   onFieldSubmitted: (value) {
                                     if (value.isNotEmpty) {
                                       setState(() {
-                                        int v1 = int.parse(value) * int.parse("${apiData[index]['indent_price']}");
-                                        product_values[index] = v1;
-                                        hsdt=int.parse(value);
+                                        hsd = int.parse(value) * int.parse("${apiData[index]['indent_price']}");
+                                        hsdtValues[index] = hsd;
+                                        print (hsdtValues);
+                                        updateSum();
+                                      });
+                                    } else {
+                                      print("Enter value");
+                                    }
+                                  },
+                                  onChanged: (value) {
+                                    if (value.isNotEmpty) {
+                                      setState(() {
+                                        hsd = int.parse(value) * int.parse("${apiData[index]['indent_price']}");
+                                        hsdtValues[index] = hsd;
+                                        print (hsdtValues);
+                                        updateSum();
                                       });
                                     } else {
                                       print("Enter value");
@@ -297,7 +385,7 @@ class _CreateOrderState extends State<Create_Order> {
                             Container(
                               alignment: Alignment.centerLeft,
                               child: Text(
-                                product_values[index].toString(),
+                                hsdtValues[index].toString(),
                                 style: TextStyle(fontSize: 13),
                               ),
                             ),
@@ -607,6 +695,14 @@ class _CreateOrderState extends State<Create_Order> {
             ),
             */
             SizedBox(height: 10),
+            Text(
+              'Total Price: ${sum}',
+              style: GoogleFonts.montserrat(
+                  fontWeight: FontWeight.w300,
+                  fontStyle: FontStyle.italic,
+                  color: Color(0xff12283D),
+                  fontSize: 13),
+            ),
             Container(
               padding: EdgeInsets.symmetric(horizontal: 10.0),
               decoration: BoxDecoration(
@@ -702,7 +798,9 @@ class _CreateOrderState extends State<Create_Order> {
 
               ],
             ),
+
             if (_site == "Self")
+
               TextFormField(
                 controller: tlController,
                 keyboardType: TextInputType.text,
@@ -744,6 +842,7 @@ class _CreateOrderState extends State<Create_Order> {
               child: MaterialButton(
                 onPressed: () {
                   var amount = hsdt + pmgt + hobct;
+                  create();
                 },
                 child: Text(
                   'Create Order',

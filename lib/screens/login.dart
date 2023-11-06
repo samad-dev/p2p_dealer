@@ -8,6 +8,7 @@ import 'home.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import '../models/user.dart';
+import 'package:intl_phone_number_input/intl_phone_number_input.dart';
 
 class Login extends StatefulWidget {
   @override
@@ -62,6 +63,8 @@ class _LoginState extends State<Login> {
         prefs.setString("logo", jsons[0]["logo"].toString());
         prefs.setString("indent_price", jsons[0]["indent_price"].toString());
         prefs.setString("Nozel_price", jsons[0]["Nozel_price"].toString());
+        prefs.setString("sap_no", jsons[0]["sap_no"].toString());
+        prefs.setString("account", jsons[0]["acount"].toString());
         Navigator.pushReplacement<void, void>(context,MaterialPageRoute<void>(builder: (BuildContext context) => Home(),),);
       } else {
         // Incorrect credentials
@@ -177,9 +180,10 @@ class _LoginState extends State<Login> {
                           fontSize: 16,
                           fontStyle: FontStyle.normal,
                         ),
+                        keyboardType: TextInputType.phone, // Set the input type to phone.
                         decoration: InputDecoration(
                           filled: false,
-                          hintText: 'Enter Email',
+                          hintText: 'Enter Phone Number',
                           hintStyle: GoogleFonts.raleway(
                             color: Color(0xffa8a8a8),
                             fontWeight: FontWeight.w300,
@@ -193,16 +197,15 @@ class _LoginState extends State<Login> {
                             fontStyle: FontStyle.normal,
                           ),
                           focusedBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(width: 2,color: Colors.green.shade700),
+                            borderSide: BorderSide(width: 2, color: Colors.green.shade700),
                           ),
                           enabledBorder: UnderlineInputBorder(
                             borderSide: BorderSide(width: 2, color: Colors.grey),
                           ),
-                          labelText: 'Email',
+                          labelText: 'Phone Number',
                         ),
                       ),
                     ),
-
                     SizedBox(
                       height: 20,
                     ),

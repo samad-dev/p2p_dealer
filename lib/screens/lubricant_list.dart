@@ -242,6 +242,7 @@ class _LubricantState extends State<Lubricant> {
               SizedBox(
                 height: 10,
               ),
+              /*
               Card(
                 elevation: 10,
                 color: Color(0xffF0F0F0),
@@ -256,7 +257,7 @@ class _LubricantState extends State<Lubricant> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'PMG',
+                              'CODE',
                               style: GoogleFonts.montserrat(
                                   fontWeight: FontWeight.w600,
                                   fontStyle: FontStyle.normal,
@@ -264,7 +265,7 @@ class _LubricantState extends State<Lubricant> {
                                   fontSize: 16),
                             ),
                             Text(
-                              'Quantity: 23000 Ltr.',
+                              'Pack Size: 23000 Ltr.',
                               style: GoogleFonts.montserrat(
                                   fontWeight: FontWeight.w200,
                                   fontStyle: FontStyle.normal,
@@ -461,6 +462,7 @@ class _LubricantState extends State<Lubricant> {
                   ),
                 ),
               )
+               */
             ],
           ),
         )),

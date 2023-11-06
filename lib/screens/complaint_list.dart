@@ -225,6 +225,7 @@ class _ComplaintsState extends State<Complaints> {
                 elevation: 10,
                 color: Color(0xffF0F0F0),
                 child: Container(
+                  /*
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: Row(
@@ -438,6 +439,7 @@ class _ComplaintsState extends State<Complaints> {
                       ],
                     ),
                   ),
+                   */
                 ),
               )
             ],

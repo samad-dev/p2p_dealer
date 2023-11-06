@@ -232,6 +232,7 @@ class _UniformState extends State<Uniform> {
               SizedBox(
                 height: 10,
               ),
+              /*
               Card(
                 elevation: 10,
                 color: Color(0xffF0F0F0),
@@ -246,7 +247,7 @@ class _UniformState extends State<Uniform> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'PMG',
+                              'Pump Attendant',
                               style: GoogleFonts.montserrat(
                                   fontWeight: FontWeight.w600,
                                   fontStyle: FontStyle.normal,
@@ -254,7 +255,7 @@ class _UniformState extends State<Uniform> {
                                   fontSize: 16),
                             ),
                             Text(
-                              'Quantity: 23000 Ltr.',
+                              'Quantity:',
                               style: GoogleFonts.montserrat(
                                   fontWeight: FontWeight.w200,
                                   fontStyle: FontStyle.normal,
@@ -451,6 +452,8 @@ class _UniformState extends State<Uniform> {
                   ),
                 ),
               )
+
+               */
             ],
           ),
         )),

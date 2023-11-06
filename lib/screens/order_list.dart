@@ -83,6 +83,7 @@ class _OrdersState extends State<Orders> {
             ),
           ],
         ),
+
         body: SingleChildScrollView(
             child: Container(
           padding: EdgeInsets.all(18),
@@ -123,7 +124,7 @@ class _OrdersState extends State<Orders> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'PMG',
+                              'Order Num #',
                               style: GoogleFonts.montserrat(
                                   fontWeight: FontWeight.w600,
                                   fontStyle: FontStyle.normal,

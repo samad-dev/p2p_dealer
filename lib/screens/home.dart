@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:fl_chart/fl_chart.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
@@ -34,21 +35,40 @@ class Home extends StatefulWidget {
 }
 class _HomeScreenState extends State<Home> {
   String dealershipName ="";
+  String sap_no ="";
+  String account ="";
   String initials = ''; // Initialize the initials variable
   late Future<List<Map<String, dynamic>>?> data;
-  final List<chartdata> ChartData = [
-    chartdata("Jan", 300, 300, 600),
-    chartdata("Feb", 250, 250, 500),
-    chartdata("Mar", 250, 600, 850),
-    chartdata("Apr", 250, 250, 500),
-    chartdata("May", 300, 300, 600),
-    chartdata("Jun", 300, 300, 600),
-    chartdata("Jul", 200, 300, 500),
-    chartdata("Aug", 200, 300, 500),
-    chartdata("Sep", 140, 300, 440),
-    chartdata("Oct", 140, 140, 280),
-    chartdata("Nov", 200, 300, 400),
-    chartdata("Dec", 200, 300, 400),
+   List<chartdata> ChartData = [];
+   List<StackedColumnSeries<chartdata, String>> generateSeries() {
+    final List<StackedColumnSeries<chartdata, String>> seriesList = [];
+    final dataKeys = ChartData.isNotEmpty ? ChartData[0].data.keys.toList() : [];
+
+    for (int i = 0; i < dataKeys.length; i++) {
+      final key = dataKeys[i];
+      final series = StackedColumnSeries<chartdata, String>(
+        dataSource: ChartData,
+        xValueMapper: (chartdata ch, _) => ch.x,
+        yValueMapper: (chartdata ch, _) => ch.data[key],
+        name: key,
+        color: barColors[i % barColors.length],
+      );
+      seriesList.add(series);
+    }
+
+    return seriesList;
+  }
+  final List<Color> barColors = [
+    Color(0xff90ee90),
+    Color(0xffffa500),
+    Color(0xffffc0cb),
+    Color(0xffadd8e6),
+    Color(0xffdda0dd),
+    Color(0xffffff00),
+    Color(0xfff5f5dc),
+    Color(0xff87ceeb),
+    Color(0xffe6e6fa),
+    Color(0xff00ff7f),
   ];
   final double width = 7;
   late List<BarChartGroupData> rawBarGroups;
@@ -61,13 +81,18 @@ class _HomeScreenState extends State<Home> {
     // Call the method to load and print data when the home page is initialized.
     loadDataFromSharedPreferences();
     data = fetchData();
+    fetchDataAndUpdateChart();
 
   }
   Future<void> loadDataFromSharedPreferences() async {
     final prefs = await SharedPreferences.getInstance();
     final name = prefs.getString("name");
+
     setState(() {
-      dealershipName = name ?? ''; // Use an empty string if the name is null
+      dealershipName = name ?? '';
+      sap_no = prefs.getString("sap_no")?? '';// Use an empty string if the name is null
+      account = prefs.getString("account")?? '';// Use an empty string if the name is null
+      // sap_no = sap_no ?? ''; // Use an empty string if the name is null
       if (dealershipName.length >= 2) {
         // Get the first two characters and convert them to uppercase
         initials = dealershipName.substring(0, 2).toUpperCase();
@@ -96,6 +121,40 @@ class _HomeScreenState extends State<Home> {
       return null;
     }
   }
+  Future<void> fetchDataAndUpdateChart() async {
+    final url = 'http://151.106.17.246:8080/OMCS-CMS-APIS/get/month_order_graph.php?key=03201232927&dealer_id=3';
+    final response = await http.get(Uri.parse(url));
+
+    if (response.statusCode == 200) {
+      final List<dynamic> jsonData = json.decode(response.body);
+
+      final List<chartdata> updatedChartData = [];
+
+      for (final monthData in jsonData) {
+        final String monthName = monthData['name'];
+        final Map<String, int> monthDataMap = {};
+
+        for (final entry in monthData['data']) {
+          final key = entry.keys.first;
+          final value = entry[key];
+          monthDataMap[key] = value;
+        }
+
+        updatedChartData.add(chartdata(monthName, monthDataMap));
+      }
+
+      // Update the ChartData list with the new data
+      setState(() {
+        ChartData = updatedChartData;
+      });
+    } else {
+      // Handle API error
+      print('Failed to fetch data from the API');
+    }
+  }
+
+
+
 
 
   @override
@@ -108,6 +167,7 @@ class _HomeScreenState extends State<Home> {
         onRefresh: () async {
           loadDataFromSharedPreferences();
           data=fetchData();
+          await fetchDataAndUpdateChart();
         },
         child: SingleChildScrollView(
           child: Padding(
@@ -167,7 +227,7 @@ class _HomeScreenState extends State<Home> {
                               Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children:[
                                   Text(
-                                    '$dealershipName (CODE)',
+                                    '$dealershipName',
                                     style: GoogleFonts.raleway(
                                       fontSize: 16,
                                       color: Color(0xffffffff),
@@ -186,7 +246,29 @@ class _HomeScreenState extends State<Home> {
 
                                 ],
                               ),
-                              SizedBox(height: 20,),
+                              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children:[
+                                  Text(
+                                    '$sap_no',
+                                    style: GoogleFonts.raleway(
+                                      fontSize: 16,
+                                      color: Color(0xffffffff),
+                                      fontWeight: FontWeight.w500,
+                                      fontStyle: FontStyle.normal,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
+                                  ),
+                                  // Icon(
+                                  //   Icons.keyboard_arrow_down_outlined,
+                                  //   color: Color(0xffffffff),
+                                  //   size: 20.0,
+                                  // ),
+
+
+                                ],
+                              ),
+                              SizedBox(height: 10,),
                               Row(
                                 children: [
                                   Text(
@@ -219,7 +301,7 @@ class _HomeScreenState extends State<Home> {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        'PKR. 3,75,000',
+                                        'PKR. ${account}',
                                         style: GoogleFonts.raleway(
                                           fontSize: 14,
                                           color: Color(0xffffffff),
@@ -350,36 +432,16 @@ class _HomeScreenState extends State<Home> {
                                   Container(
                                     child: SfCartesianChart(
                                       primaryYAxis: NumericAxis(),
-                                      primaryXAxis: CategoryAxis(majorGridLines:MajorGridLines(color: Colors.white,)),
-                                      legend: Legend( isVisible: true, position: LegendPosition.top,textStyle:TextStyle(color: Color(
-                                          0xff636465))),
-                                      series: <ChartSeries>[
-                                        StackedColumnSeries<chartdata, String>(
-                                          dataSource: ChartData,
-                                          xValueMapper: (chartdata ch, _) => ch.x,
-                                          yValueMapper: (chartdata ch, _) => ch.y1,
-                                          name: 'PMG', // Legend label
-                                          color: Color(0xfffd6929), // Change the color of the bars
-                                        ),
-                                        StackedColumnSeries<chartdata, String>(
-                                          dataSource: ChartData,
-                                          xValueMapper: (chartdata ch, _) => ch.x,
-                                          yValueMapper: (chartdata ch, _) => ch.y2,
-                                          name: 'HSD', // Legend label
-                                          color: Color(0xff5bebd1), // Change the color of the bars
-                                        ),
-                                        StackedColumnSeries<chartdata, String>(
-                                          dataSource: ChartData,
-                                          xValueMapper: (chartdata ch, _) => ch.x,
-                                          yValueMapper: (chartdata ch, _) => ch.y3,
-                                          name: 'HOBC', // Legend label
-                                          color: Color(0xff6c6074), // Change the color of the bars
-                                          borderRadius: const BorderRadius.only(
-                                            topLeft: Radius.circular(10),
-                                            topRight: Radius.circular(10),
-                                          ),
-                                        ),
-                                      ],
+                                      primaryXAxis: CategoryAxis(
+                                        majorGridLines: MajorGridLines(color: Colors.white),
+                                      ),
+                                      legend: Legend(
+                                        isVisible: true,
+                                        position: LegendPosition.top,
+                                        textStyle: TextStyle(color: Color(0xff636465)),
+                                      ),
+                                      series: generateSeries(),
+
                                     ),
                                   ),
                                 ],
@@ -705,12 +767,11 @@ class _HomeScreenState extends State<Home> {
   }
 }
 
-class chartdata{
+class chartdata {
   final String x;
-  final int y1;
-  final int y2;
-  final int y3;
-  chartdata(this.x,this.y1,this.y2,this.y3);
+  final Map<String, int> data;
+
+  chartdata(this.x, this.data);
 }
 
 
