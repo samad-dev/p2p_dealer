@@ -696,7 +696,7 @@ class _CreateOrderState extends State<Create_Order> {
             */
             SizedBox(height: 10),
             Text(
-              'Total Price: ${sum}',
+              'Total Amount: ${sum}',
               style: GoogleFonts.montserrat(
                   fontWeight: FontWeight.w300,
                   fontStyle: FontStyle.italic,
