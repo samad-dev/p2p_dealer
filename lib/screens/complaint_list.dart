@@ -1,8 +1,11 @@
+import 'dart:convert';
+
 import 'package:dropdown_plus/dropdown_plus.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hascol_dealer/screens/complaint.dart';
@@ -13,6 +16,8 @@ import 'package:hascol_dealer/screens/profile.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 import 'package:dropdown_textfield/dropdown_textfield.dart';
+import 'package:http/http.dart' as http;
+
 
 class Complaints extends StatefulWidget {
   static const Color contentColorOrange = Color(0xFF00705B);
@@ -22,10 +27,126 @@ class Complaints extends StatefulWidget {
   _ComplaintsState createState() => _ComplaintsState();
 }
 
+List<String> object_type_list = [];
+List<String> object_id_list = [];
+String? selectedobjformId;
+String? selectedobjformType;
+
+List<String> damage_type_list = [];
+List<String> damage_id_list = [];
+String? selecteddamformId;
+String? selecteddamformType;
+
+final TextEditingController damage = TextEditingController();
+final TextEditingController dam_text = TextEditingController();
+final TextEditingController cause_text = TextEditingController();
+
 class _ComplaintsState extends State<Complaints> {
   @override
   void initState() {
     super.initState();
+    Object_type_data();
+    Damage_type_data();
+  }
+  Future<void> Object_type_data() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var id = prefs.getString("Id");
+    final response = await http.get(
+        Uri.parse('http://151.106.17.246:8080/OMCS-CMS-APIS/get/complaint_objects.php?key=03201232927&dealer_id=$id'));
+
+    if (response.statusCode == 200) {
+      List<dynamic> data = json.decode(response.body);
+      List<String> typeList = data.map((item) => item['object_name'].toString()).toList();
+      List<String> idList = data.map((item) => item['id'].toString()).toList();
+      setState(() {
+        object_type_list = typeList;
+        object_id_list = idList;
+      });
+    } else {
+      throw Exception('Failed to fetch data from the API');
+    }
+  }
+  Future<void> Damage_type_data() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var id = prefs.getString("Id");
+    final response = await http.get(
+        Uri.parse('http://151.106.17.246:8080/OMCS-CMS-APIS/get/complaint_damage.php?key=03201232927&dealer_id=$id'));
+
+    if (response.statusCode == 200) {
+      List<dynamic> data = json.decode(response.body);
+      List<String> typeList = data.map((item) => item['name'].toString()).toList();
+      List<String> idList = data.map((item) => item['id'].toString()).toList();
+      setState(() {
+        damage_type_list = typeList;
+        damage_id_list = idList;
+      });
+    } else {
+      throw Exception('Failed to fetch data from the API');
+    }
+  }
+  void sendOrderDataToAPI() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var id = prefs.getString("Id");
+    final apiUrl = "http://151.106.17.246:8080/OMCS-CMS-APIS/create/create_dealer_complaint.php";
+    final data = {
+      "dealer_id": id,
+      "row_id": '',
+      "object_part": selectedobjformId,
+      "damage_overview": selecteddamformId,
+      "damage": damage.text.toString(),
+      "text": dam_text.text.toString(),
+      "cause_text": cause_text.text.toString(),
+    };
+
+    final response = await http.post(Uri.parse(apiUrl), body: data);
+
+    if (response.statusCode == 200) {
+      print("Order data sent successfully!");
+      Fluttertoast.showToast(
+        msg: "Order sent successfully",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.CENTER,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.green,
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
+      fetchDataFromAPI();
+      Navigator.of(context).pop();
+      damage.clear();
+      dam_text.clear();
+      cause_text.clear();
+    } else {
+      print("Error sending order data. Status code: ${response.statusCode}");
+      Fluttertoast.showToast(
+        msg: "Order Not Created",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.CENTER,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
+      fetchDataFromAPI();
+      Navigator.of(context).pop();
+      damage.clear();
+      dam_text.clear();
+      cause_text.clear();
+    }
+  }
+  Future<List<Map<String, dynamic>>?> fetchDataFromAPI() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var id = prefs.getString("Id");
+    final response = await http.get(
+      Uri.parse('http://151.106.17.246:8080/OMCS-CMS-APIS/get/get_dealers_new_complaints.php?key=03201232927&dealer_id=$id'),
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      return List<Map<String, dynamic>>.from(data);
+    } else {
+      throw Exception('Failed to load data from the API');
+    }
   }
 
   int _selectedIndex = 1;
@@ -83,8 +204,7 @@ class _ComplaintsState extends State<Complaints> {
                                       ),
                                     ),
                                     TextDropdownFormField(
-                                      options:["Signage", "Lightning", "Fuel Dispenser", "DG Set", "Air Compressor", "Pump Controller"
-                                          "Electrical", "Civil Works", "C Store", "Miscellaneous"],
+                                      options:object_type_list,
                                       decoration: InputDecoration(
                                         border: OutlineInputBorder(
                                           borderRadius: BorderRadius.circular(18.0),
@@ -92,11 +212,21 @@ class _ComplaintsState extends State<Complaints> {
                                         suffixIcon: Icon(Icons.arrow_drop_down_circle_outlined),
                                         labelText: "Object Part",
                                       ),
-                                      dropdownHeight: 220,
+                                      dropdownHeight: 100,
+                                      onChanged: (dynamic value) {
+                                        setState(() {
+                                          selectedobjformType = value; // Set the selected type
+                                          // Find the index of the selected type in uniform_type_list
+                                          int index = object_type_list.indexOf(value);
+                                          if (index >= 0 && index < object_id_list.length) {
+                                            selectedobjformId = object_id_list[index]; // Set the corresponding ID
+                                          }
+                                        });
+                                      },
                                     ),
                                     SizedBox(height:18,),
                                     TextDropdownFormField(
-                                      options: ["Canopy Fascia", "Monolith", "In/Out Sign", "Flat Sign", "Directory Sign", "Spreaders"],
+                                      options: damage_type_list,
                                       decoration: InputDecoration(
                                         border: OutlineInputBorder(
                                           borderRadius: BorderRadius.circular(18.0),
@@ -104,13 +234,24 @@ class _ComplaintsState extends State<Complaints> {
                                         suffixIcon: Icon(Icons.arrow_drop_down_circle_outlined),
                                         labelText: "Damage Overview",
                                       ),
-                                      dropdownHeight: 220,
+                                      dropdownHeight: 100,
+                                      onChanged: (dynamic value) {
+                                        setState(() {
+                                          selecteddamformType = value; // Set the selected type
+                                          // Find the index of the selected type in uniform_type_list
+                                          int index = damage_type_list.indexOf(value);
+                                          if (index >= 0 && index < damage_id_list.length) {
+                                            selecteddamformId = damage_id_list[index]; // Set the corresponding ID
+                                          }
+                                        });
+                                      },
                                     ),
                                     SizedBox(height:18,),
                                     Row(
                                       children: [
                                         Expanded(
                                           child: TextField(
+                                            controller: damage,
                                             decoration: InputDecoration(
                                               labelText: 'Damage',
                                               border: OutlineInputBorder(borderRadius: BorderRadius.circular(18.0),),
@@ -121,6 +262,7 @@ class _ComplaintsState extends State<Complaints> {
                                         SizedBox(width: 10), // Add some spacing between the two text fields
                                         Expanded(
                                           child: TextField(
+                                            controller: dam_text,
                                             decoration: InputDecoration(
                                               labelText: 'Text',
                                               border: OutlineInputBorder(borderRadius: BorderRadius.circular(18.0),),
@@ -131,6 +273,7 @@ class _ComplaintsState extends State<Complaints> {
                                     ),
                                     SizedBox(height:18,),
                                     TextField(
+                                      controller:cause_text,
                                       decoration: InputDecoration(
                                         labelText: 'Cause Text',
                                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(18.0),),
@@ -157,8 +300,7 @@ class _ComplaintsState extends State<Complaints> {
                                               style: ElevatedButton.styleFrom(
                                                 primary: Color(0xffe81329),
                                               ),
-                                              onPressed: () {
-                                              },
+                                              onPressed: sendOrderDataToAPI,
                                             ),
                                           ),
                                         ],
@@ -221,11 +363,132 @@ class _ComplaintsState extends State<Complaints> {
               SizedBox(
                 height: 10,
               ),
+              FutureBuilder<List<Map<String, dynamic>>?>(
+                future: fetchDataFromAPI(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  } else if (snapshot.hasError) {
+                    return Center(
+                      child: Text('Error: ${snapshot.error}'),
+                    );
+                  } else if (snapshot.hasData) {
+                    final apiData = snapshot.data!;
+                    return ListView.builder(
+                      shrinkWrap: true,
+                      physics: NeverScrollableScrollPhysics(),
+                      itemCount: apiData.length,
+                      itemBuilder: (context, index) {
+                        final item = apiData[index];
+                        return Card(
+                          elevation: 10,
+                          color: Color(0xffF0F0F0),
+                          child: Padding(
+                            padding: const EdgeInsets.all(7.0),
+                            child: Column(
+                              children: [
+                                Row(
+                                  children: [
+                                    Text(
+                                      'Complaint#: ${item['id']}',
+                                      style: GoogleFonts.montserrat(
+                                        fontWeight: FontWeight.w600,
+                                        fontStyle: FontStyle.normal,
+                                        color: Color(0xff12283D),
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text('Object: ${item['object_name']}',
+                                      style: GoogleFonts.montserrat(
+                                        fontWeight: FontWeight.w600,
+                                        fontStyle: FontStyle.normal,
+                                        color: Color(0xff3B8D5A),
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                    Text('Damage: ${item['damage_name']}',
+                                      style: GoogleFonts.montserrat(
+                                        fontWeight: FontWeight.w600,
+                                        fontStyle: FontStyle.normal,
+                                        color: Color(0xff3B8D5A),
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 2.0,),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    children: [
+                                      Text('Damage: ${item['damage']}',
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 2.0,),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    children: [
+                                      Text('Text: ${item['text']}',
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 2.0,),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    children: [
+                                      Text('Cause Text: ${item['cause_text']}',
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 8.0,),
+                                  child: Row(
+                                    children: [
+                                      Text('${item['created_at']}',
+                                        style: GoogleFonts.montserrat(
+                                          fontWeight: FontWeight.w200,
+                                          fontStyle: FontStyle.normal,
+                                          color: Color(0xff737373),
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+
+                        );
+                      },
+                    );
+                  } else {
+                    return Center(
+                      child: Text('No data available.'),
+                    );
+                  }
+                },
+              ),
+              /*
               Card(
                 elevation: 10,
                 color: Color(0xffF0F0F0),
                 child: Container(
-                  /*
+
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: Row(
@@ -439,9 +702,9 @@ class _ComplaintsState extends State<Complaints> {
                       ],
                     ),
                   ),
-                   */
+
                 ),
-              )
+              )*/
             ],
           ),
         )),

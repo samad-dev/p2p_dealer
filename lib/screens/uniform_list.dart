@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:dropdown_plus/dropdown_plus.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
@@ -13,6 +15,8 @@ import 'package:hascol_dealer/screens/profile.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 import 'package:dropdown_textfield/dropdown_textfield.dart';
+import 'package:http/http.dart' as http;
+import 'package:fluttertoast/fluttertoast.dart';
 
 class Uniform extends StatefulWidget {
   static const Color contentColorOrange = Color(0xFF00705B);
@@ -21,11 +25,109 @@ class Uniform extends StatefulWidget {
   @override
   _UniformState createState() => _UniformState();
 }
+List<String> uniform_type_list = [];
+List<String> uniform_id_list = [];
+String? selectedUniformId;
 
+String? selectedOption;
+String? selectedUniformType;
+final TextEditingController smallQuantityController = TextEditingController(text: '0');
+final TextEditingController mediumQuantityController = TextEditingController(text: '0');
+final TextEditingController largeQuantityController = TextEditingController(text: '0');
+final TextEditingController extraLargeQuantityController = TextEditingController(text: '0');
+List<Map<String, dynamic>> apiData = [];
 class _UniformState extends State<Uniform> {
   @override
   void initState() {
     super.initState();
+    uniform_type_data();
+    fetchDataFromAPI();
+  }
+
+  Future<void> uniform_type_data() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var id = prefs.getString("Id");
+    final response = await http.get(
+        Uri.parse('http://151.106.17.246:8080/OMCS-CMS-APIS/get/get_uniform_type.php?key=03201232927&dealer_id=$id'));
+
+    if (response.statusCode == 200) {
+      List<dynamic> data = json.decode(response.body);
+      List<String> typeList = data.map((item) => item['type'].toString()).toList();
+      List<String> idList = data.map((item) => item['id'].toString()).toList();
+
+      setState(() {
+        uniform_type_list = typeList;
+        uniform_id_list = idList;
+      });
+    } else {
+      throw Exception('Failed to fetch data from the API');
+    }
+  } // for getting uniform type from api
+  void sendOrderDataToAPI() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var id = prefs.getString("Id");
+    final apiUrl = "http://151.106.17.246:8080/OMCS-CMS-APIS/create/create_uniform_order.php";
+    final data = {
+      "type": selectedUniformId,
+      "dealer_id": id,
+      "row_id": '',
+      "sm": smallQuantityController.text.toString(),
+      "md": mediumQuantityController.text.toString(),
+      "lg": largeQuantityController.text.toString(),
+      "xl": extraLargeQuantityController.text.toString(),
+    };
+
+    final response = await http.post(Uri.parse(apiUrl), body: data);
+
+    if (response.statusCode == 200) {
+      print("Order data sent successfully!");
+      Fluttertoast.showToast(
+        msg: "Order sent successfully",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.CENTER,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.green,
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
+      fetchDataFromAPI();
+      Navigator.of(context).pop();
+      smallQuantityController.clear();
+      mediumQuantityController.clear();
+      largeQuantityController.clear();
+      extraLargeQuantityController.clear();
+    } else {
+      print("Error sending order data. Status code: ${response.statusCode}");
+      Fluttertoast.showToast(
+        msg: "Order Not Created",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.CENTER,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
+      fetchDataFromAPI();
+      Navigator.of(context).pop();
+      smallQuantityController.clear();
+      mediumQuantityController.clear();
+      largeQuantityController.clear();
+      extraLargeQuantityController.clear();
+    }
+  } // for sending order of uniform to api
+  Future<List<Map<String, dynamic>>?> fetchDataFromAPI() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var id = prefs.getString("Id");
+    final response = await http.get(
+      Uri.parse('http://151.106.17.246:8080/OMCS-CMS-APIS/get/dealers_uniform_orders.php?key=03201232927&dealer_id=$id'),
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      return List<Map<String, dynamic>>.from(data);
+    } else {
+      throw Exception('Failed to load data from the API');
+    }
   }
 
   int _selectedIndex = 1;
@@ -84,8 +186,8 @@ class _UniformState extends State<Uniform> {
                                       ),
                                     ),
                                     SizedBox( height: 10,),
-                                    TextDropdownFormField(
-                                      options: ["Pump attendant", "Winter jacket", "Bay the Way"],
+                                    TextDropdownFormField(// Set the selected value
+                                      options: uniform_type_list,
                                       decoration: InputDecoration(
                                         border: OutlineInputBorder(
                                           borderRadius: BorderRadius.circular(18.0),
@@ -93,13 +195,24 @@ class _UniformState extends State<Uniform> {
                                         suffixIcon: Icon(Icons.arrow_drop_down_circle_outlined),
                                         labelText: "Select uniform type",
                                       ),
-                                      dropdownHeight: 160,
+                                      dropdownHeight: 100,
+                                      onChanged: (dynamic value) {
+                                        setState(() {
+                                          selectedUniformType = value; // Set the selected type
+                                          // Find the index of the selected type in uniform_type_list
+                                          int index = uniform_type_list.indexOf(value);
+                                          if (index >= 0 && index < uniform_id_list.length) {
+                                            selectedUniformId = uniform_id_list[index]; // Set the corresponding ID
+                                          }
+                                        });
+                                      },
                                     ),
                                     SizedBox( height: 10,),
                                     Row(
                                       children: [
                                         Expanded(
                                           child: TextField(
+                                            controller: smallQuantityController,
                                             keyboardType: TextInputType.number,
                                             decoration: InputDecoration(
                                               labelText: 'Quantity for Small',
@@ -111,6 +224,7 @@ class _UniformState extends State<Uniform> {
                                         SizedBox(width: 10), // Add some spacing between the two text fields
                                         Expanded(
                                           child: TextField(
+                                            controller: mediumQuantityController,
                                             keyboardType: TextInputType.number,
                                             decoration: InputDecoration(
                                               labelText: 'Quantity for Medium',
@@ -126,6 +240,7 @@ class _UniformState extends State<Uniform> {
                                       children: [
                                         Expanded(
                                           child: TextField(
+                                            controller: largeQuantityController,
                                             keyboardType: TextInputType.number,
                                             decoration: InputDecoration(
                                               labelText: 'Quantity for Large',
@@ -137,6 +252,7 @@ class _UniformState extends State<Uniform> {
                                         SizedBox(width: 10), // Add some spacing between the two text fields
                                         Expanded(
                                           child: TextField(
+                                            controller: extraLargeQuantityController,
                                             keyboardType: TextInputType.number,
                                             decoration: InputDecoration(
                                               labelText: 'Quantity for Extra Large',
@@ -167,8 +283,7 @@ class _UniformState extends State<Uniform> {
                                               style: ElevatedButton.styleFrom(
                                                 primary: Color(0xffe81329),
                                               ),
-                                              onPressed: () {
-                                              },
+                                                onPressed: sendOrderDataToAPI,
                                             ),
                                           ),
                                         ],
@@ -207,256 +322,418 @@ class _UniformState extends State<Uniform> {
           ],
         ),
         body: SingleChildScrollView(
-            child: Container(
-          padding: EdgeInsets.all(18),
-          child: Column(
-            children: [
-              Card(
-                color: Colors.white,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(10))),
-                elevation: 5,
-                child: TextField(
-                  decoration: InputDecoration(
-                      prefixIcon: Icon(FluentIcons.search_12_regular,
-                          color: Color(0xff8d8d8d)),
-                      hintText: 'Search...',
-                      hintStyle: GoogleFonts.montserrat(
-                          fontWeight: FontWeight.w300,
-                          fontStyle: FontStyle.normal,
-                          color: Color(0xff12283D),
-                          fontSize: 16),
-                      border: InputBorder.none),
-                ),
-              ),
-              SizedBox(
-                height: 10,
-              ),
-              /*
-              Card(
-                elevation: 10,
-                color: Color(0xffF0F0F0),
-                child: Container(
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Pump Attendant',
-                              style: GoogleFonts.montserrat(
-                                  fontWeight: FontWeight.w600,
-                                  fontStyle: FontStyle.normal,
-                                  color: Color(0xff12283D),
-                                  fontSize: 16),
-                            ),
-                            Text(
-                              'Quantity:',
-                              style: GoogleFonts.montserrat(
-                                  fontWeight: FontWeight.w200,
-                                  fontStyle: FontStyle.normal,
-                                  color: Color(0xff737373),
-                                  fontSize: 12),
-                            ),
-                            Text(
-                              '54,000 Rs.',
-                              style: GoogleFonts.montserrat(
-                                  fontWeight: FontWeight.w600,
-                                  fontStyle: FontStyle.normal,
-                                  color: Color(0xff3B8D5A),
-                                  fontSize: 12),
-                            ),
-                            SizedBox(
-                              height: 32,
-                            ),
-                            Text(
-                              '9/20/2023  5:00 PM',
-                              style: GoogleFonts.montserrat(
-                                  fontWeight: FontWeight.w300,
-                                  fontStyle: FontStyle.normal,
-                                  color: Color(0xff9b9b9b),
-                                  fontSize: 12),
-                            ),
-                          ],
-                        ),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Card(
-                              color: Color(0xffFFF3D4),
-                              child: Padding(
-                                padding: const EdgeInsets.all(3.0),
-                                child: Text(
-                                  'In Progress',
-                                  style: GoogleFonts.poppins(
-                                      fontWeight: FontWeight.w500,
-                                      fontStyle: FontStyle.normal,
-                                      color: Color(0xffE7AD18),
-                                      fontSize: 12),
-                                ),
-                              ),
-                            ),
-                            Text(
-                              'Waiting For Approval',
-                              style: GoogleFonts.montserrat(
-                                  fontWeight: FontWeight.w300,
-                                  fontStyle: FontStyle.normal,
-                                  color: Color(0xff9b9b9b),
-                                  fontSize: 12),
-                            ),
-                            SizedBox(
-                              height: 3,
-                            ),
-                            SizedBox(
-                              width: 90,
-                              height: 20,
-                              child: ElevatedButton(
-                                child: Text(
-                                  'Shortage',
-                                  style: GoogleFonts.poppins(
-                                    fontWeight: FontWeight.w100,
-                                    fontSize: 11,
-                                    fontStyle: FontStyle.normal,
-                                  ),
-                                ),
-                                style: ElevatedButton.styleFrom(
-                                    primary: Color(0xff12283D),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(18.0),
-                                    )),
-                                onPressed: () {
-                                  showModalBottomSheet(
-                                    context: context,
-                                    builder: (context) {
-                                      return Container(
-                                        color: Colors.white54,
-                                        child: Column(
+            child:  RefreshIndicator(
+              onRefresh:fetchDataFromAPI,
+              child: Container(
+                padding: EdgeInsets.all(18),
+                child: Column(
+                  children: [
+                    Card(
+                      color: Colors.white,
+                      shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(10))),
+                      elevation: 5,
+                      child: TextField(
+                        decoration: InputDecoration(
+                            prefixIcon: Icon(FluentIcons.search_12_regular,
+                                color: Color(0xff8d8d8d)),
+                            hintText: 'Search...',
+                            hintStyle: GoogleFonts.montserrat(
+                            fontWeight: FontWeight.w300,
+                            fontStyle: FontStyle.normal,
+                            color: Color(0xff12283D),
+                                fontSize: 16),
+                            border: InputBorder.none),
+                      ),
+                    ),
+                    SizedBox(
+                      height: 10,
+                    ),
+                    FutureBuilder<List<Map<String, dynamic>>?>(
+                      future: fetchDataFromAPI(),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return Center(
+                            child: CircularProgressIndicator(),
+                          );
+                        } else if (snapshot.hasError) {
+                          return Center(
+                            child: Text('Error: ${snapshot.error}'),
+                          );
+                        } else if (snapshot.hasData) {
+                          final apiData = snapshot.data!;
+                          return ListView.builder(
+                            shrinkWrap: true,
+                            physics: NeverScrollableScrollPhysics(),
+                            itemCount: apiData.length,
+                            itemBuilder: (context, index) {
+                              final item = apiData[index];
+                              return Card(
+                                elevation: 10,
+                                color: Color(0xffF0F0F0),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(7.0),
+                                  child: Column(
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            'Uniform Order#: ${item['id']}',
+                                            style: GoogleFonts.montserrat(
+                                              fontWeight: FontWeight.w700,
+                                              fontStyle: FontStyle.normal,
+                                              color: Color(0xff12283D),
+                                              fontSize: 16,
+                                            ),
+                                          ),
+                                          Image.asset(
+                                            "assets/images/coverall.png",
+                                            width: 40,
+                                            height: 40,
+                                            
+                                          ),
+                                        ],
+                                      ),
+                                      Row(
+                                        children: [
+                                          Text('Type: ${item['type_name']}',
+                                            style: GoogleFonts.montserrat(
+                                              fontWeight: FontWeight.w600,
+                                              fontStyle: FontStyle.normal,
+                                              color: Color(0xff3B8D5A),
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 0.0),
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                           children: [
-                                            SizedBox(height: 30,),
-                                            Icon(
-                                              FontAwesomeIcons.cameraRetro,
-                                              color: Color(0xff12283d),
-                                              size: 160,
+                                            Row(
+                                              children: [
+                                                Text('Small: '),
+                                                Text('${item['sm']}Pc',
+                                                  style: GoogleFonts.montserrat(
+                                                  fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ],
                                             ),
-                                            Text(
-                                              'Click Here To Upload Photos',
-                                              style: GoogleFonts.poppins(
-                                                fontWeight: FontWeight.w500,
-                                                fontSize: 16,
+                                            Row(
+                                              children: [
+                                                Text('Medium: '),
+                                                Text('${item['md']}Pc',
+                                                  style: GoogleFonts.montserrat(
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      Padding(
+                                          padding: const EdgeInsets.symmetric(horizontal: 0.0),
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Row(
+                                              children: [
+                                                Text('Large: '),
+                                                Text('${item['lg']}Pc',
+                                                  style: GoogleFonts.montserrat(
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            Row(
+                                              children: [
+                                                Text('Extra Large: '),
+                                                Text('${item['xl']}Pc',
+                                                  style: GoogleFonts.montserrat(
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(vertical: 8.0,),
+                                        child: Row(
+                                          children: [
+                                            Text('${item['created_at']}',
+                                              style: GoogleFonts.montserrat(
+                                                fontWeight: FontWeight.w200,
                                                 fontStyle: FontStyle.normal,
-                                              ),
-                                            ),
-                                            Padding(
-                                              padding: const EdgeInsets.all(18.0),
-                                              child: SizedBox(
-                                                height: 50,
-                                                child: TextFormField(
-
-                                                  onFieldSubmitted: (value) {
-                                                    print(value);
-
-                                                  },
-                                                  keyboardType: TextInputType.number,
-                                                  style: GoogleFonts.poppins(
-                                                    color: Color(0xffa8a8a8),
-                                                    fontWeight: FontWeight.w300,
-                                                    fontSize: 16,
-                                                    fontStyle: FontStyle.normal,
-                                                  ),
-                                                  decoration: InputDecoration(
-                                                    hintStyle: GoogleFonts.poppins(
-                                                      color: Color(0xffa8a8a8),
-                                                      fontWeight: FontWeight.w300,
-                                                      fontSize: 16,
-                                                      fontStyle: FontStyle.normal,
-                                                    ),
-                                                    labelStyle: GoogleFonts.poppins(
-                                                      color: Color(0xffa8a8a8),
-                                                      fontWeight: FontWeight.w300,
-                                                      fontSize: 16,
-                                                      fontStyle: FontStyle.normal,
-                                                    ),
-                                                    filled: true,
-                                                    fillColor: Color(0xffF1F4FF),
-                                                    hintText: 'Recieved',
-                                                    focusedBorder: OutlineInputBorder(
-                                                        borderSide:
-                                                        BorderSide(width: 2, color: Color(0xff3b5fe0)),
-                                                        borderRadius:
-                                                        BorderRadius.all(Radius.circular(10))),
-                                                    border: OutlineInputBorder(
-                                                        borderSide:
-                                                        BorderSide(width: 2, color: Color(0xffF1F4FF)),
-                                                        borderRadius:
-                                                        BorderRadius.all(Radius.circular(10))),
-                                                    labelText: 'Recieved Qty',
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                            Padding(
-                                              padding: EdgeInsets.only(top: 20),
-                                              child: MaterialButton(
-                                                onPressed: () {
-
-                                                },
-                                                child: Text(
-                                                  'Add Shortage',
-                                                  style: TextStyle(
-                                                      fontSize: 15,
-                                                      fontFamily: 'SFUIDisplay',
-                                                      fontWeight: FontWeight.bold,
-                                                      color: Colors.white),
-                                                ),
-                                                color: Color(0xff12283d),
-                                                elevation: 0,
-                                                minWidth: 350,
-                                                height: 60,
-                                                shape: RoundedRectangleBorder(
-                                                    borderRadius: BorderRadius.circular(10)),
+                                                color: Color(0xff737373),
+                                                fontSize: 12,
                                               ),
                                             ),
                                           ],
                                         ),
-                                      );
-                                    },
-                                  );
-                                },
+                                      ),
+                                    ],
+                                  ),
+                                ),
+
+
+                          );
+                          },
+                          );
+                    } else {
+                      return Center(
+                        child: Text('No data available.'),
+                      );
+                    }
+                  },
+                ),
+
+                /*ListView.builder(
+                  itemCount: apiData.length,
+                  itemBuilder: (context, index) {
+                    final item = apiData[index];
+                    return Card(
+                      child: Row(
+                        children: [
+                            Text('Type Name: ${item['type_name']}'),
+                            Text('Created At: ${item['created_at']}'),
+                        ],
+                      ),
+                    );
+                  },
+                ),*/
+                /*
+                Card(
+                  elevation: 10,
+                  color: Color(0xffF0F0F0),
+                  child: Container(
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Pump Attendant',
+                                style: GoogleFonts.montserrat(
+                                    fontWeight: FontWeight.w600,
+                                    fontStyle: FontStyle.normal,
+                                    color: Color(0xff12283D),
+                                    fontSize: 16),
                               ),
-                            ),
-                            TextButton.icon(
-                              // <-- TextButton
-                              onPressed: () {},
-                              icon: Icon(
-                                FluentIcons.drawer_arrow_download_24_regular,
-                                size: 16.0,
-                                color: Color(0xff12283D),
+                              Text(
+                                'Quantity:',
+                                style: GoogleFonts.montserrat(
+                                    fontWeight: FontWeight.w200,
+                                    fontStyle: FontStyle.normal,
+                                    color: Color(0xff737373),
+                                    fontSize: 12),
                               ),
-                              label: Text(
-                                'Invoice',
+                              Text(
+                                '54,000 Rs.',
+                                style: GoogleFonts.montserrat(
+                                    fontWeight: FontWeight.w600,
+                                    fontStyle: FontStyle.normal,
+                                    color: Color(0xff3B8D5A),
+                                    fontSize: 12),
+                              ),
+                              SizedBox(
+                                height: 32,
+                              ),
+                              Text(
+                                '9/20/2023  5:00 PM',
                                 style: GoogleFonts.montserrat(
                                     fontWeight: FontWeight.w300,
                                     fontStyle: FontStyle.normal,
-                                    color: Color(0xff12283D),
+                                    color: Color(0xff9b9b9b),
                                     fontSize: 12),
                               ),
-                            ),
-                          ],
-                        ),
-                      ],
+                            ],
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Card(
+                                color: Color(0xffFFF3D4),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(3.0),
+                                  child: Text(
+                                    'In Progress',
+                                    style: GoogleFonts.poppins(
+                                        fontWeight: FontWeight.w500,
+                                        fontStyle: FontStyle.normal,
+                                        color: Color(0xffE7AD18),
+                                        fontSize: 12),
+                                  ),
+                                ),
+                              ),
+                              Text(
+                                'Waiting For Approval',
+                                style: GoogleFonts.montserrat(
+                                    fontWeight: FontWeight.w300,
+                                    fontStyle: FontStyle.normal,
+                                    color: Color(0xff9b9b9b),
+                                    fontSize: 12),
+                              ),
+                              SizedBox(
+                                height: 3,
+                              ),
+                              SizedBox(
+                                width: 90,
+                                height: 20,
+                                child: ElevatedButton(
+                                  child: Text(
+                                    'Shortage',
+                                    style: GoogleFonts.poppins(
+                                      fontWeight: FontWeight.w100,
+                                      fontSize: 11,
+                                      fontStyle: FontStyle.normal,
+                                    ),
+                                  ),
+                                  style: ElevatedButton.styleFrom(
+                                      primary: Color(0xff12283D),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(18.0),
+                                      )),
+                                  onPressed: () {
+                                    showModalBottomSheet(
+                                      context: context,
+                                      builder: (context) {
+                                        return Container(
+                                          color: Colors.white54,
+                                          child: Column(
+                                            children: [
+                                              SizedBox(height: 30,),
+                                              Icon(
+                                                FontAwesomeIcons.cameraRetro,
+                                                color: Color(0xff12283d),
+                                                size: 160,
+                                              ),
+                                              Text(
+                                                'Click Here To Upload Photos',
+                                                style: GoogleFonts.poppins(
+                                                  fontWeight: FontWeight.w500,
+                                                  fontSize: 16,
+                                                  fontStyle: FontStyle.normal,
+                                                ),
+                                              ),
+                                              Padding(
+                                                padding: const EdgeInsets.all(18.0),
+                                                child: SizedBox(
+                                                  height: 50,
+                                                  child: TextFormField(
+
+                                                    onFieldSubmitted: (value) {
+                                                      print(value);
+
+                                                    },
+                                                    keyboardType: TextInputType.number,
+                                                    style: GoogleFonts.poppins(
+                                                      color: Color(0xffa8a8a8),
+                                                      fontWeight: FontWeight.w300,
+                                                      fontSize: 16,
+                                                      fontStyle: FontStyle.normal,
+                                                    ),
+                                                    decoration: InputDecoration(
+                                                      hintStyle: GoogleFonts.poppins(
+                                                        color: Color(0xffa8a8a8),
+                                                        fontWeight: FontWeight.w300,
+                                                        fontSize: 16,
+                                                        fontStyle: FontStyle.normal,
+                                                      ),
+                                                      labelStyle: GoogleFonts.poppins(
+                                                        color: Color(0xffa8a8a8),
+                                                        fontWeight: FontWeight.w300,
+                                                        fontSize: 16,
+                                                        fontStyle: FontStyle.normal,
+                                                      ),
+                                                      filled: true,
+                                                      fillColor: Color(0xffF1F4FF),
+                                                      hintText: 'Recieved',
+                                                      focusedBorder: OutlineInputBorder(
+                                                          borderSide:
+                                                          BorderSide(width: 2, color: Color(0xff3b5fe0)),
+                                                          borderRadius:
+                                                          BorderRadius.all(Radius.circular(10))),
+                                                      border: OutlineInputBorder(
+                                                          borderSide:
+                                                          BorderSide(width: 2, color: Color(0xffF1F4FF)),
+                                                          borderRadius:
+                                                          BorderRadius.all(Radius.circular(10))),
+                                                      labelText: 'Recieved Qty',
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                              Padding(
+                                                padding: EdgeInsets.only(top: 20),
+                                                child: MaterialButton(
+                                                  onPressed: () {
+
+                                                  },
+                                                  child: Text(
+                                                    'Add Shortage',
+                                                    style: TextStyle(
+                                                        fontSize: 15,
+                                                        fontFamily: 'SFUIDisplay',
+                                                        fontWeight: FontWeight.bold,
+                                                        color: Colors.white),
+                                                  ),
+                                                  color: Color(0xff12283d),
+                                                  elevation: 0,
+                                                  minWidth: 350,
+                                                  height: 60,
+                                                  shape: RoundedRectangleBorder(
+                                                      borderRadius: BorderRadius.circular(10)),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      },
+                                    );
+                                  },
+                                ),
+                              ),
+                              TextButton.icon(
+                                // <-- TextButton
+                                onPressed: () {},
+                                icon: Icon(
+                                  FluentIcons.drawer_arrow_download_24_regular,
+                                  size: 16.0,
+                                  color: Color(0xff12283D),
+                                ),
+                                label: Text(
+                                  'Invoice',
+                                  style: GoogleFonts.montserrat(
+                                      fontWeight: FontWeight.w300,
+                                      fontStyle: FontStyle.normal,
+                                      color: Color(0xff12283D),
+                                      fontSize: 12),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              )
+                )
 
-               */
-            ],
+                 */
+              ],
           ),
-        )),
+        ),
+            )),
         /*
         bottomNavigationBar: Container(
           decoration: BoxDecoration(

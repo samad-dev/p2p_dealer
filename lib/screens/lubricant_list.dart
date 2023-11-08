@@ -1,8 +1,11 @@
+import 'dart:convert';
+
 import 'package:dropdown_plus/dropdown_plus.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hascol_dealer/screens/create_order.dart';
@@ -13,6 +16,7 @@ import 'package:hascol_dealer/screens/profile.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 import 'package:dropdown_textfield/dropdown_textfield.dart';
+import 'package:http/http.dart' as http;
 
 class Lubricant extends StatefulWidget {
   static const Color contentColorOrange = Color(0xFF00705B);
@@ -21,11 +25,113 @@ class Lubricant extends StatefulWidget {
   @override
   _LubricantState createState() => _LubricantState();
 }
+List<String> lubricant_type_list = [];
+List<String> lubricant_id_list = [];
+String? selectedlubformId;
+String? selectedlubformType;
+
+final TextEditingController code = TextEditingController();
+final TextEditingController pack_size = TextEditingController();
+final TextEditingController ctn_size = TextEditingController();
+final TextEditingController Packs_in_ctn = TextEditingController();
+final TextEditingController total_pack = TextEditingController();
+final TextEditingController total_order = TextEditingController();
 
 class _LubricantState extends State<Lubricant> {
   @override
   void initState() {
     super.initState();
+    Lubricant_type_data();
+  }
+  Future<void> Lubricant_type_data() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var id = prefs.getString("Id");
+    final response = await http.get(
+        Uri.parse('http://151.106.17.246:8080/OMCS-CMS-APIS/get/get_lude_grade.php?key=03201232927&dealer_id=$id'));
+
+    if (response.statusCode == 200) {
+      List<dynamic> data = json.decode(response.body);
+      List<String> typeList = data.map((item) => item['grade'].toString()).toList();
+      List<String> idList = data.map((item) => item['id'].toString()).toList();
+      setState(() {
+        lubricant_type_list = typeList;
+        lubricant_id_list = idList;
+      });
+    } else {
+      throw Exception('Failed to fetch data from the API');
+    }
+  } // for getting uniform type from api
+  void sendOrderDataToAPI() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var id = prefs.getString("Id");
+    final apiUrl = "http://151.106.17.246:8080/OMCS-CMS-APIS/create/create_dealer_lube.php";
+    final data = {
+      "dealer_id": id,
+      "row_id": '',
+      "grade_id": selectedlubformId,
+      "code": code.text.toString(),
+      "pack_size": pack_size.text.toString(),
+      "ctn_size": pack_size.text.toString(),
+      "pack_ctn": Packs_in_ctn.text.toString(),
+      "total_pack": total_pack.text.toString(),
+      "total_order": total_order.text.toString(),
+    };
+
+    final response = await http.post(Uri.parse(apiUrl), body: data);
+
+    if (response.statusCode == 200) {
+      print("Order data sent successfully!");
+      Fluttertoast.showToast(
+        msg: "Order sent successfully",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.CENTER,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.green,
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
+      fetchDataFromAPI();
+      Navigator.of(context).pop();
+      code.clear();
+      pack_size.clear();
+      pack_size.clear();
+      Packs_in_ctn.clear();
+      total_pack.clear();
+      total_order.clear();
+    } else {
+      print("Error sending order data. Status code: ${response.statusCode}");
+      Fluttertoast.showToast(
+        msg: "Order Not Created",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.CENTER,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
+      fetchDataFromAPI();
+      Navigator.of(context).pop();
+      code.clear();
+      pack_size.clear();
+      pack_size.clear();
+      Packs_in_ctn.clear();
+      total_pack.clear();
+      total_order.clear();
+    }
+  }
+  Future<List<Map<String, dynamic>>?> fetchDataFromAPI() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var id = prefs.getString("Id");
+    final response = await http.get(
+      Uri.parse('http://151.106.17.246:8080/OMCS-CMS-APIS/get/get_dealer_lube_order.php?key=03201232927&dealer_id=$id'),
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      return List<Map<String, dynamic>>.from(data);
+    } else {
+      throw Exception('Failed to load data from the API');
+    }
   }
 
   int _selectedIndex = 1;
@@ -83,6 +189,7 @@ class _LubricantState extends State<Lubricant> {
                                 children: [
                                   Expanded(
                                     child: TextField(
+                                      controller: code,
                                       decoration: InputDecoration(
                                         labelText: 'Code',
                                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(18.0),),
@@ -93,6 +200,7 @@ class _LubricantState extends State<Lubricant> {
                                   SizedBox(width: 10), // Add some spacing between the two text fields
                                   Expanded(
                                     child: TextField(
+                                      controller: pack_size,
                                       decoration: InputDecoration(
                                         labelText: 'Pack Size (Ltrs & Kg)',
                                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(18.0),),
@@ -104,8 +212,7 @@ class _LubricantState extends State<Lubricant> {
                               ),
                               SizedBox(height:18,),
                               TextDropdownFormField(
-                                options: ["Puma Intelu Supreme 15W40 CI-4 12*1L ", "Puma Intelu Supreme 15W40 CI-4 4*4L ",
-                                  "Puma Intelu Supreme 15W40 CI-4 2*10L ", "Puma Intelu Supreme"],
+                                options: lubricant_type_list,
                                 decoration: InputDecoration(
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(18.0),
@@ -113,13 +220,24 @@ class _LubricantState extends State<Lubricant> {
                                   suffixIcon: Icon(Icons.arrow_drop_down_circle_outlined),
                                   labelText: "Grade",
                                 ),
-                                dropdownHeight: 220,
+                                dropdownHeight: 100,
+                                onChanged: (dynamic value) {
+                                  setState(() {
+                                    selectedlubformType = value; // Set the selected type
+                                    // Find the index of the selected type in uniform_type_list
+                                    int index = lubricant_type_list.indexOf(value);
+                                    if (index >= 0 && index < lubricant_id_list.length) {
+                                      selectedlubformId = lubricant_id_list[index]; // Set the corresponding ID
+                                    }
+                                  });
+                                },
                               ),
                               SizedBox(height:18,),
                               Row(
                                 children: [
                                   Expanded(
                                     child: TextField(
+                                      controller: ctn_size,
                                       decoration: InputDecoration(
                                         labelText: 'Ctn Size (Ltrs)',
                                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(18.0),),
@@ -130,6 +248,7 @@ class _LubricantState extends State<Lubricant> {
                                   SizedBox(width: 10), // Add some spacing between the two text fields
                                   Expanded(
                                     child: TextField(
+                                      controller: Packs_in_ctn,
                                       decoration: InputDecoration(
                                         labelText: 'Packs in CTN',
                                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(18.0),),
@@ -143,6 +262,7 @@ class _LubricantState extends State<Lubricant> {
                                 children: [
                                   Expanded(
                                     child: TextField(
+                                      controller: total_pack,
                                       decoration: InputDecoration(
                                         labelText: 'Total Packs/pails/drums',
                                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(18.0),),
@@ -152,6 +272,7 @@ class _LubricantState extends State<Lubricant> {
                                   SizedBox(width: 10), // Add some spacing between the two text fields
                                   Expanded(
                                     child: TextField(
+                                      controller: total_order,
                                       decoration: InputDecoration(
                                         labelText: 'Total Order in ltr',
                                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(18.0),),
@@ -181,8 +302,7 @@ class _LubricantState extends State<Lubricant> {
                                         style: ElevatedButton.styleFrom(
                                           primary: Color(0xffe81329),
                                         ),
-                                        onPressed: () {
-                                        },
+                                        onPressed: sendOrderDataToAPI,
                                       ),
                                     ),
                                   ],
@@ -241,6 +361,162 @@ class _LubricantState extends State<Lubricant> {
               ),
               SizedBox(
                 height: 10,
+              ),
+              FutureBuilder<List<Map<String, dynamic>>?>(
+                future: fetchDataFromAPI(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  } else if (snapshot.hasError) {
+                    return Center(
+                      child: Text('Error: ${snapshot.error}'),
+                    );
+                  } else if (snapshot.hasData) {
+                    final apiData = snapshot.data!;
+                    return ListView.builder(
+                      shrinkWrap: true,
+                      physics: NeverScrollableScrollPhysics(),
+                      itemCount: apiData.length,
+                      itemBuilder: (context, index) {
+                        final item = apiData[index];
+                        return Card(
+                          elevation: 10,
+                          color: Color(0xffF0F0F0),
+                          child: Padding(
+                            padding: const EdgeInsets.all(7.0),
+                            child: Column(
+                              children: [
+                                Row(
+                                  children: [
+                                    Text(
+                                      'Lubricant Order#: ${item['id']}',
+                                      style: GoogleFonts.montserrat(
+                                        fontWeight: FontWeight.w600,
+                                        fontStyle: FontStyle.normal,
+                                        color: Color(0xff12283D),
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text('Type: ${item['grade']}',
+                                      style: GoogleFonts.montserrat(
+                                        fontWeight: FontWeight.w600,
+                                        fontStyle: FontStyle.normal,
+                                        color: Color(0xff3B8D5A),
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                    Text('Code: ${item['code']}',
+                                      style: GoogleFonts.montserrat(
+                                        fontWeight: FontWeight.w600,
+                                        fontStyle: FontStyle.normal,
+                                        color: Color(0xff3B8D5A),
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Text('ctn size'),
+                                          Text('${item['ctn_size']}',
+                                            style: GoogleFonts.montserrat(
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      Row(
+                                        children: [
+                                          Text('pack_ctn'),
+                                          Text('${item['pack_ctn']}',
+                                            style: GoogleFonts.montserrat(
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Text('pack_size: '),
+                                          Text('${item['pack_size']}',
+                                            style: GoogleFonts.montserrat(
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      Row(
+                                        children: [
+                                          Text('total_pack '),
+                                          Text('${item['total_pack']}Pc',
+                                            style: GoogleFonts.montserrat(
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 8.0,),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text('Total Order: ${item['total_order']}',
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 8.0,),
+                                  child: Row(
+                                    children: [
+                                      Text('${item['created_at']}',
+                                        style: GoogleFonts.montserrat(
+                                          fontWeight: FontWeight.w200,
+                                          fontStyle: FontStyle.normal,
+                                          color: Color(0xff737373),
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+
+                        );
+                      },
+                    );
+                  } else {
+                    return Center(
+                      child: Text('No data available.'),
+                    );
+                  }
+                },
               ),
               /*
               Card(
