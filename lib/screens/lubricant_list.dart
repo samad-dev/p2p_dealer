@@ -399,7 +399,7 @@ class _LubricantState extends State<Lubricant> {
                           elevation: 10,
                           color: Color(0xffffffff),
                           child: Padding(
-                            padding: const EdgeInsets.all(7.0),
+                            padding: const EdgeInsets.symmetric(vertical: 8.0),
                             child: Row(
                               children: [
                                 Padding(

@@ -175,6 +175,7 @@ class _OrdersState extends State<Orders> {
                           final type = item['type'];
                           final created_at = item['created_at'];
                           final productJsonString = item["product_json"];
+                          final current_status = item["current_status"];
                           final List<Map<String, dynamic>> products = List<Map<String, dynamic>>.from(json.decode(productJsonString));
                           print("Khan-----> $products");
                           int index = 0;
@@ -225,8 +226,10 @@ class _OrdersState extends State<Orders> {
                                               ),
                                               SizedBox(height: 10,),
                                               for (var i = 0; i < products.length; i++)
-                                                Container(
+                                                if (products[i]['quantity'] != null && products[i]['quantity'] != '0')
+                                                  Container(
                                                   color: backgroundColor = i % 2 == 0 ? Colors.grey : Colors.white,
+
                                                   child: Row(
                                                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                                                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -258,7 +261,7 @@ class _OrdersState extends State<Orders> {
                                                     ],
                                                   ),
                                                 ),
-                                                SizedBox(height: 5,),
+                                                  SizedBox(height: 5,),
                                               SizedBox(height: 10,),
                                               Row(
                                                 mainAxisAlignment: MainAxisAlignment.end,
@@ -349,7 +352,7 @@ class _OrdersState extends State<Orders> {
                                               child: Padding(
                                                 padding: const EdgeInsets.all(3.0),
                                                 child: Text(
-                                                  'In Progress',
+                                                  '$current_status',
                                                   style: GoogleFonts.poppins(
                                                     fontWeight: FontWeight.w500,
                                                     fontStyle: FontStyle.normal,
@@ -359,6 +362,7 @@ class _OrdersState extends State<Orders> {
                                                 ),
                                               ),
                                             ),
+                                            /*
                                             Text(
                                               'Waiting For Approval',
                                               style: GoogleFonts.montserrat(
@@ -368,6 +372,7 @@ class _OrdersState extends State<Orders> {
                                                 fontSize: 12,
                                               ),
                                             ),
+                                            */
                                             SizedBox(
                                               height: 3,
                                             ),

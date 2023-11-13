@@ -33,7 +33,7 @@ class _CreateOrderState extends State<Create_Order> {
   int hobct = 0;
   int pmgt = 0;
   List data = [];
-  String? _mySelection;
+  String? _mySelection='0';
   String? account;
   TextEditingController hsdController = new TextEditingController();
   TextEditingController pmgController = new TextEditingController();
@@ -824,6 +824,7 @@ class _CreateOrderState extends State<Create_Order> {
                   color: Color(0xff12283D),
                   fontSize: 13),
             ),
+            /*
             Container(
               padding: EdgeInsets.symmetric(horizontal: 10.0),
               decoration: BoxDecoration(
@@ -833,6 +834,7 @@ class _CreateOrderState extends State<Create_Order> {
                     style: BorderStyle.solid,
                     width: 0.80),
               ),
+
               child: DropdownButton(
                 underline: Container(), //remove underline
                 isExpanded: true,
@@ -874,6 +876,7 @@ class _CreateOrderState extends State<Create_Order> {
                 ),
               ),
             ),
+            */
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: <Widget>[
