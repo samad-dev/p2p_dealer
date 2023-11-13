@@ -1,12 +1,8 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hascol_dealer/screens/complaint.dart';
-import 'package:hascol_dealer/screens/home.dart';
-import 'package:hascol_dealer/screens/login.dart';
 import 'package:hascol_dealer/screens/order_list.dart';
 import 'package:hascol_dealer/screens/profile.dart';
 import 'package:intl/intl.dart';
@@ -16,7 +12,6 @@ import 'package:syncfusion_flutter_charts/charts.dart';
 
 
 import 'create_order.dart';
-import 'home.dart';
 
 class Home extends StatefulWidget {
   static const Color contentColorOrange = Color(0xFF00705B);

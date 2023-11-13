@@ -1,6 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
-import 'dart:ffi';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -8,7 +6,6 @@ import 'package:hascol_dealer/screens/home.dart';
 import 'package:hascol_dealer/screens/login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:video_player/video_player.dart';
-import 'package:http/http.dart' as http;
 void main() {
   runApp(MyApp());
 }
@@ -171,7 +168,7 @@ class _SplashScreenState extends State<SplashScreen> {
                                       ),
                                     ),
                                     style: ElevatedButton.styleFrom(
-                                      primary: Color(0xffe81329),
+                                      backgroundColor: Color(0xffe81329),
                                       shape: RoundedRectangleBorder(
                                           borderRadius: BorderRadius.circular(
                                               30.0)),

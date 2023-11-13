@@ -1,16 +1,10 @@
 import 'dart:convert';
-import 'dart:math';
 
 import 'package:fl_chart/fl_chart.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:hascol_dealer/screens/complaint.dart';
 import 'package:hascol_dealer/screens/complaint_list.dart';
-import 'package:hascol_dealer/screens/home.dart';
-import 'package:hascol_dealer/screens/login.dart';
 import 'package:hascol_dealer/screens/lubricant_list.dart';
 import 'package:hascol_dealer/screens/order_list.dart';
 import 'package:hascol_dealer/screens/profile.dart';
@@ -23,8 +17,6 @@ import 'package:http/http.dart' as http;
 
 
 
-import 'create_order.dart';
-import 'home.dart';
 
 class Home extends StatefulWidget {
   static const Color contentColorOrange = Color(0xFF00705B);
@@ -162,7 +154,7 @@ class _HomeScreenState extends State<Home> {
     DateTime now = DateTime.now();
     String formattedDate = DateFormat('EEE d MMM kk:mm:ss').format(now);
     return Scaffold(
-      backgroundColor: Color(0xff1a3687),
+      backgroundColor: Colors.green,//Color(0xfff1f1f1),
       body: RefreshIndicator(
         onRefresh: () async {
           loadDataFromSharedPreferences();
@@ -211,8 +203,9 @@ class _HomeScreenState extends State<Home> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Card(
-                      color: Color(0xff5672a6),
-                      elevation: 15,
+                      shadowColor: Color(0xffec1b24),
+                      color: Color(0xffec1b24),
+                      elevation: 20,
                       child: SizedBox(
                         width: MediaQuery.of(context).size.width / 1.25,
                         height: 140,
@@ -341,10 +334,19 @@ class _HomeScreenState extends State<Home> {
                     Column(
                       children: <Widget>[
                         GestureDetector(
-                          child: CircleAvatar(
-                            radius: 28, // Adjust the size of the circular avatar
-                            backgroundColor: Colors.white, // You can set the background color
-                            child: Image.asset('assets/images/completed-task.png',width: 42,height: 42,),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: Color(0xffec1b24), // Set the color of the border
+                                width: 1, // Set the width of the border
+                              ),
+                            ),
+                            child: CircleAvatar(
+                              radius: 28, // Adjust the size of the circular avatar
+                              backgroundColor: Color(0xffec1b24), // You can set the background color
+                              child: Image.asset('assets/images/cargo.png',width: 35,height: 35,),
+                            ),
                           ),
                           onTap: () {
                             // Navigate to the OrderScreen when tapped
@@ -352,16 +354,25 @@ class _HomeScreenState extends State<Home> {
                           },
                         ),
                         SizedBox(height: 8.0),
-                        Text("Order",style: TextStyle(color: Colors.white),),
+                        Text("Order",style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),),//Color(0xff01764a)
                       ],
                     ),
                     Column(
                       children: <Widget>[
                         GestureDetector(
-                          child: CircleAvatar(
-                            radius: 28, // Adjust the size of the circular avatar
-                            backgroundColor: Colors.white, // You can set the background color
-                            child: Image.asset('assets/images/engine-oil.png',width: 42,height: 42,),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: Color(0xffec1b24), // Set the color of the border
+                                width: 1, // Set the width of the border
+                              ),
+                            ),
+                            child: CircleAvatar(
+                              radius: 28, // Adjust the size of the circular avatar
+                              backgroundColor: Color(0xffec1b24), // Color(0xff01764a),You can set the background color
+                              child: Image.asset('assets/images/engine-oil (1).png',width: 38,height: 38,),
+                            ),
                           ),
                           onTap: () {
                             // Navigate to the OrderScreen when tapped
@@ -369,16 +380,25 @@ class _HomeScreenState extends State<Home> {
                           },
                         ),
                         SizedBox(height: 8.0),
-                        Text("Lubricant",style: TextStyle(color: Colors.white),),
+                        Text("Lubricant",style: TextStyle(color: Colors.white,fontWeight: FontWeight.bold),), //Color(0xff01764a)
                       ],
                     ),
                     Column(
                       children: <Widget>[
                         GestureDetector(
-                          child: CircleAvatar(
-                            radius: 28, // Adjust the size of the circular avatar
-                            backgroundColor: Colors.white, // You can set the background color
-                            child: Image.asset('assets/images/coverall.png',width: 50,height: 50,),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: Color(0xffec1b24), // Set the color of the border
+                                width: 1, // Set the width of the border
+                              ),
+                            ),
+                            child: CircleAvatar(
+                              radius: 28, // Adjust the size of the circular avatar
+                              backgroundColor: Color(0xffec1b24), //Color(0xff01764a),// You can set the background color
+                              child: Image.asset("assets/images/shirt.png",width: 38,height: 38,),
+                            ),
                           ),
                           onTap: () {
                             // Navigate to the OrderScreen when tapped
@@ -387,7 +407,7 @@ class _HomeScreenState extends State<Home> {
                         ),
                         
                         SizedBox(height: 8.0),
-                        Text("Uniforms", style: TextStyle(color: Colors.white),),
+                        Text("Uniforms", style: TextStyle(color: Colors.white ,fontWeight: FontWeight.bold),),//Color(0xff01764a)
                       ],
                     ),
                   ],
@@ -396,13 +416,13 @@ class _HomeScreenState extends State<Home> {
                 Align(
                   alignment: FractionalOffset.bottomCenter,
                   child: Card(
-
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.only(
                             topLeft: Radius.circular(30.0),
                             topRight: Radius.circular(30.0),
                           ),
                         ),
+
                         margin: EdgeInsets.all(0),
                         child: Column(
                           children: [
@@ -476,7 +496,7 @@ class _HomeScreenState extends State<Home> {
                                                     '${item['name']}',
                                                     style: TextStyle(
                                                       fontWeight: FontWeight.bold,
-                                                      color: Color(0xff0e4967),
+                                                      color: Color(0xff01764a),
                                                       fontSize: 18.0,
                                                     ),
                                                   ),
@@ -484,7 +504,7 @@ class _HomeScreenState extends State<Home> {
                                                     children: <Widget>[
                                                       Icon(
                                                         FluentIcons.clock_arrow_download_20_regular, // Choose the clock icon you prefer
-                                                        color: Color(0xff0e4967), // Set the color of the clock icon
+                                                        color: Color(0xff01764a), // Set the color of the clock icon
                                                         size: 16,
                                                       ),
                                                       SizedBox(width: 5,),
@@ -492,7 +512,7 @@ class _HomeScreenState extends State<Home> {
                                                         '${item['update_time']}',
                                                         style: TextStyle(
                                                           fontWeight: FontWeight.bold,
-                                                          color: Color(0xff0e4967),
+                                                          color: Color(0xff01764a),
                                                           fontSize: 10,
                                                         ),
                                                       ),
@@ -511,14 +531,14 @@ class _HomeScreenState extends State<Home> {
                                                     'Indent Price',
                                                     style: TextStyle(
                                                       fontWeight: FontWeight.bold,
-                                                      color: Color(0xff0e4967),
+                                                      color: Color(0xff01764a),
                                                     ),
                                                   ),
                                                   Text(
                                                     'Nozel Price',
                                                     style: TextStyle(
                                                       fontWeight: FontWeight.bold,
-                                                      color: Color(0xff0e4967),
+                                                      color: Color(0xff01764a),
                                                     ),
                                                   ),
                                                 ],
@@ -536,13 +556,13 @@ class _HomeScreenState extends State<Home> {
                                                   Text(
                                                     'PKR: ${item['indent_price']}',
                                                     style: TextStyle(
-                                                      color: Color(0xff0e4967),
+                                                      color: Color(0xff01764a),
                                                     ),
                                                   ),
                                                   Text(
                                                     'PKR: ${item['nozel_price']}',
                                                     style: TextStyle(
-                                                      color: Color(0xff0e4967),
+                                                      color: Color(0xff01764a),
                                                     ),
                                                   ),
                                                 ],

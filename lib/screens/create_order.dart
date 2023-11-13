@@ -1,17 +1,14 @@
 import 'dart:convert';
 
-import 'package:fl_chart/fl_chart.dart';
-import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:hascol_dealer/screens/home.dart';
-import 'package:hascol_dealer/screens/login.dart';
+import 'package:hascol_dealer/screens/uniform_list.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
+import 'package:dropdown_plus/dropdown_plus.dart';
 
 class Create_Order extends StatefulWidget {
   static const Color contentColorOrange = Color(0xFF00705B);
@@ -26,9 +23,10 @@ class _CreateOrderState extends State<Create_Order> {
   List<dynamic>? sapi;
   List<int> product_values1 = [];
   List<TextEditingController> controllers = [];
+  late List<int> selectedOptions;
   late List<int> hsdtValues;
-  int? total ;
-  int hsd=0;
+  int? total;
+  int hsd = 0;
   int hobc = 330;
   int pmg = 332;
   int hsdt = 0;
@@ -42,68 +40,114 @@ class _CreateOrderState extends State<Create_Order> {
   TextEditingController hobcController = new TextEditingController();
   TextEditingController depotController = new TextEditingController();
   TextEditingController tlController = new TextEditingController();
+  List<String> size_type_list = [];
+  List<String> size_id_list = [];
+  String? selectedsizeformId;
+  String? selectedsizeformType;
   var _site = "Self";
-  int sum=0;
+  int sum = 0;
   void updateSum() {
-    sum=0;
+    sum = 0;
     List<int> numbers = hsdtValues;
-     sum = numbers.reduce((value, element) => value + element);
+    sum = numbers.reduce((value, element) => value + element);
 
     print("Sum: $sum");
   }
 
-  create() async{
+  create() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     var id = prefs.getString("Id");
+    var legder_balance = prefs.getString("account");
     List<Map<String, dynamic>> jsonArray = [];
-    for(int i=0;i<hsdtValues.length;i++)
-      {
-        print('Moiz:====${controllers[i].text.toString()}');
-        print('Moiz2:====${sapi?[i]['indent_price']}');
-        Map<String, dynamic> jsonObject = {
-          'p_id': '${sapi?[i]['id']}',
-          'quantity': controllers[i].text.toString(),
-          'indent_price':'${sapi?[i]['indent_price']}',
-          'product_name':'${sapi?[i]['name']}',
-          'amount':hsdtValues[i],
-        };
-        jsonArray.add(jsonObject);
-
-      }
+    for (int i = 0; i < hsdtValues.length; i++) {
+      print('Moiz:====${controllers[i].text.toString()}');
+      print('Moiz2:====${sapi?[i]['indent_price']}');
+      Map<String, dynamic> jsonObject = {
+        'p_id': '${sapi?[i]['id']}',
+        'quantity': selectedOptions[i].toString(),
+        'indent_price': '${sapi?[i]['indent_price']}',
+        'product_name': '${sapi?[i]['name']}',
+        'amount': hsdtValues[i],
+      };
+      jsonArray.add(jsonObject);
+    }
     // Convert the array to a JSON string
     String jsonString = json.encode(jsonArray);
 
     // Print the JSON string
     print(jsonString);
+    print("${id}||${_mySelection}||${_site}||${tlController.text.toString()}||${sum}||${legder_balance}");
     var request = http.MultipartRequest('POST', Uri.parse('http://151.106.17.246:8080/OMCS-CMS-APIS/create/create_dealers_orders.php'));
-    request.fields.addAll({
-      'dealer_id': '${id}',
-      'row_id': '',
-      'depot': '${_mySelection}',
-      'type': '${_site}',
-      'tl_no': '${tlController.text.toString()}',
-      'total': '${sum}',
-      'product': '${jsonString}'
-    });
-    http.StreamedResponse response = await request.send();
-
-    if (response.statusCode == 200) {
-      var ret = await response.stream.bytesToString();
-      if(ret=='1')
-        {
-          Fluttertoast.showToast(msg: 'Order Created Successfully',backgroundColor: Colors.greenAccent,textColor: Colors.black);
+    if (_site == "Self") {
+      if (tlController.text.isNotEmpty) {
+        request.fields.addAll({
+          'dealer_id': '${id}',
+          'row_id': '',
+          'depot': '${_mySelection}',
+          'type': '${_site}',
+          'tl_no': '${tlController.text.toString()}',
+          'total': '${sum}',
+          'product': '${jsonString}',
+          'legder_balance': '${legder_balance}',
+        });
+        http.StreamedResponse response = await request.send();
+        if (response.statusCode == 200) {
+          var ret = await response.stream.bytesToString();
+          if (ret == '1') {
+            Fluttertoast.showToast(
+                msg: 'Order Created Successfully',
+                backgroundColor: Colors.greenAccent,
+                textColor: Colors.black);
+            Navigator.pop(context);
+          } else {
+            Fluttertoast.showToast(
+                msg: 'Order Not Created',
+                backgroundColor: Colors.redAccent,
+                textColor: Colors.white);
+          }
+          print(ret);
+        } else {
+          print(response.reasonPhrase);
+        }
+      } else {
+        Fluttertoast.showToast(
+            msg: 'Please Enter TL# ',
+            backgroundColor: Colors.redAccent,
+            textColor: Colors.white);
+      }
+    }
+    else{
+      request.fields.addAll({
+        'dealer_id': '${id}',
+        'row_id': '',
+        'depot': '${_mySelection}',
+        'type': '${_site}',
+        'tl_no': '${tlController.text.toString()}',
+        'total': '${sum}',
+        'product': '${jsonString}',
+        'legder_balance': '$legder_balance',
+      });
+      http.StreamedResponse response = await request.send();
+      if (response.statusCode == 200) {
+        var ret = await response.stream.bytesToString();
+        if (ret == '1') {
+          Fluttertoast.showToast(
+              msg: 'Order Created Successfully',
+              backgroundColor: Colors.greenAccent,
+              textColor: Colors.black);
           Navigator.pop(context);
+        } else {
+          Fluttertoast.showToast(
+              msg: 'Order Not Created',
+              backgroundColor: Colors.redAccent,
+              textColor: Colors.white);
         }
-      else
-        {
-          Fluttertoast.showToast(msg: 'Order Not Created',backgroundColor: Colors.redAccent,textColor: Colors.white);
-        }
-      print(await response.stream.bytesToString());
+        print(await response.stream.bytesToString());
+      }
+      else {
+        print(response.reasonPhrase);
+      }
     }
-    else {
-      print(response.reasonPhrase);
-    }
-
   }
 
   @override
@@ -111,13 +155,38 @@ class _CreateOrderState extends State<Create_Order> {
     super.initState();
     this.getDepot();
     data1 = fetchData();
+    Containers_sizes();
+  }
+
+  Future<void> Containers_sizes() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var id = prefs.getString("Id");
+    final response = await http.get(Uri.parse(
+        'http://151.106.17.246:8080/OMCS-CMS-APIS/get/get_containers_sizes.php?key=03201232927&id=1'));
+
+    if (response.statusCode == 200) {
+      print("Hello world");
+      List<dynamic> data = json.decode(response.body);
+      List<String> sizeList =
+          data.map((item) => item['sizes'].toString()).toList();
+      List<String> idList = data.map((item) => item['id'].toString()).toList();
+      setState(() {
+        size_type_list = sizeList;
+        size_id_list = idList;
+        print("MOIZ-1: $size_type_list");
+      });
+    } else {
+      print("object-error");
+      throw Exception('Failed to fetch data from the API');
+    }
   }
   Future<List<Map<String, dynamic>>?> fetchData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     var id = prefs.getString("Id");
     account = prefs.getString("account");
 
-    final url = Uri.parse("http://151.106.17.246:8080/OMCS-CMS-APIS/get/dealers_products.php?key=03201232927&dealer_id=${id}");
+    final url = Uri.parse(
+        "http://151.106.17.246:8080/OMCS-CMS-APIS/get/dealers_products.php?key=03201232927&dealer_id=${id}");
 
     try {
       final response = await http.get(url);
@@ -126,9 +195,11 @@ class _CreateOrderState extends State<Create_Order> {
         final List<dynamic> jsonResponse = json.decode(response.body);
         print(jsonResponse);
         sapi = jsonResponse;
-        List<Map<String, dynamic>> data = jsonResponse.cast<Map<String, dynamic>>();
+        List<Map<String, dynamic>> data =
+            jsonResponse.cast<Map<String, dynamic>>();
         print('Samad ${data.length}');
-        hsdtValues =  List.filled(data.length, 0);
+        hsdtValues = List.filled(data.length, 0);
+        selectedOptions = List.filled(data.length, 0);
         return data;
       } else {
         // Handle the error, e.g., show an error message
@@ -139,7 +210,9 @@ class _CreateOrderState extends State<Create_Order> {
       return null;
     }
   }
+
   int _selectedIndex = 1;
+
   @override
   Widget build(BuildContext context) {
     DateTime now = DateTime.now();
@@ -251,7 +324,6 @@ class _CreateOrderState extends State<Create_Order> {
               height: 20,
             ),
             FutureBuilder<List<Map<String, dynamic>>?>(
-
               future: data1,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
@@ -263,11 +335,13 @@ class _CreateOrderState extends State<Create_Order> {
                 } else {
                   List<Map<String, dynamic>> apiData = snapshot.data!;
 
-
                   // Ensure that controllers has the same length as apiData
                   if (controllers.length < apiData.length) {
-                    controllers.addAll(List.generate(apiData.length - controllers.length, (index) => TextEditingController()));
+                    controllers.addAll(List.generate(
+                        apiData.length - controllers.length,
+                        (index) => TextEditingController()));
                   }
+                  // List<String> selectedOptions = List.generate(apiData.length, (index) => '');
                   return ListView.builder(
                     shrinkWrap: true,
                     itemCount: apiData.length,
@@ -282,7 +356,53 @@ class _CreateOrderState extends State<Create_Order> {
                             Flexible(
                               child: SizedBox(
                                 width: 150,
-                                child: TextFormField(
+                                child: TextDropdownFormField(
+                                  options: size_type_list,
+                                  decoration: InputDecoration(
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(18.0),
+                                    ),
+                                    suffixIcon: Icon(
+                                        Icons.arrow_drop_down_circle_outlined),
+                                    labelText: "${apiData[index]['name']}",
+                                  ),
+                                  dropdownHeight: 100,
+                                  onChanged: (dynamic value) {
+                                    if (value.isNotEmpty) {
+                                      setState(() {
+                                        selectedOptions[index] = int.parse(value);
+                                        hsd = int.parse(value) * int.parse("${apiData[index]['indent_price']}");
+                                        hsdtValues[index] = hsd;
+
+                                        print("Hellow brother $hsdtValues");
+                                        print("Hellow brother $selectedOptions");
+                                        updateSum();
+                                      });
+                                    } else {
+                                      print("Enter value");
+                                    }
+                                    ;
+                                  },
+                                  onSaved: (dynamic value) {
+                                    if (value.isNotempty) {
+                                      setState(() {
+                                        controllers[index] = value;
+                                        print("my value2 $value");
+                                        hsd = int.parse(value) *
+                                            int.parse(
+                                                "${apiData[index]['indent_price']}");
+                                        hsdtValues[index] = hsd;
+                                        print("Hellow brother $hsdtValues");
+                                        updateSum();
+                                      });
+                                    } else {
+                                      print("Enter value");
+                                    }
+                                    ;
+                                  },
+                                ),
+                                /*
+                                TextFormField(
                                   onFieldSubmitted: (value) {
                                     if (value.isNotEmpty) {
                                       setState(() {
@@ -347,6 +467,8 @@ class _CreateOrderState extends State<Create_Order> {
                                     labelText: '${apiData[index]['name']}',
                                   ),
                                 ),
+
+                                     */
                               ),
                             ),
                             SizedBox(
@@ -393,7 +515,6 @@ class _CreateOrderState extends State<Create_Order> {
                         ),
                       );
                     },
-
                   );
                 }
               },
@@ -715,21 +836,23 @@ class _CreateOrderState extends State<Create_Order> {
               child: DropdownButton(
                 underline: Container(), //remove underline
                 isExpanded: true,
-                icon: Padding( //Icon at tail, arrow bottom is default icon
-                    padding: EdgeInsets.only(left:20),
-                    child:Icon(Icons.arrow_circle_down_sharp)
-                ),
+                icon: Padding(
+                    //Icon at tail, arrow bottom is default icon
+                    padding: EdgeInsets.only(left: 20),
+                    child: Icon(Icons.arrow_circle_down_sharp)),
                 iconEnabledColor: Color(0xff12283d),
-                style: const TextStyle(
-                    color: Colors.black54, fontSize: 13),
+                style: const TextStyle(color: Colors.black54, fontSize: 13),
                 items: data.map((item) {
                   return DropdownMenuItem(
-                    child: new Text(item['consignee_name'],style: GoogleFonts.poppins(
-                      color: Color(0xffa8a8a8),
-                      fontWeight: FontWeight.w300,
-                      fontSize: 16,
-                      fontStyle: FontStyle.normal,
-                    ),),
+                    child: new Text(
+                      item['consignee_name'],
+                      style: GoogleFonts.poppins(
+                        color: Color(0xffa8a8a8),
+                        fontWeight: FontWeight.w300,
+                        fontSize: 16,
+                        fontStyle: FontStyle.normal,
+                      ),
+                    ),
                     value: item['id'].toString(),
                   );
                 }).toList(),
@@ -740,30 +863,35 @@ class _CreateOrderState extends State<Create_Order> {
                   });
                 },
                 value: _mySelection,
-                hint: Text("Select Depot",style: GoogleFonts.poppins(
-                  color: Color(0xff000000),
-                  fontWeight: FontWeight.w300,
-                  fontSize: 16,
-                  fontStyle: FontStyle.normal,
-                ),),
+                hint: Text(
+                  "Select Depot",
+                  style: GoogleFonts.poppins(
+                    color: Color(0xff000000),
+                    fontWeight: FontWeight.w300,
+                    fontSize: 16,
+                    fontStyle: FontStyle.normal,
+                  ),
+                ),
               ),
             ),
-
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: <Widget>[
                 Expanded(
                   child: ListTile(
-                    title:  Text('Self',style:GoogleFonts.montserrat(
-                      fontSize: 14,
-                      color: Color(0xff12283D),
-                      fontWeight: FontWeight.w500,
-                      fontStyle: FontStyle.italic,
-                    ),),
-
+                    title: Text(
+                      'Self',
+                      style: GoogleFonts.montserrat(
+                        fontSize: 14,
+                        color: Color(0xff12283D),
+                        fontWeight: FontWeight.w500,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
                     leading: Radio(
                       fillColor: MaterialStateProperty.all(Color(0xff12283D)),
-                      overlayColor:  MaterialStateProperty.all(Color(0xff12283D)),
+                      overlayColor:
+                          MaterialStateProperty.all(Color(0xff12283D)),
                       value: "Self",
                       groupValue: _site,
                       onChanged: (value) {
@@ -776,15 +904,19 @@ class _CreateOrderState extends State<Create_Order> {
                 ),
                 Expanded(
                   child: ListTile(
-                    title: Text('GC / Coco',style:GoogleFonts.montserrat(
-                      fontSize: 14,
-                      color: Color(0xff12283D),
-                      fontWeight: FontWeight.w500,
-                      fontStyle: FontStyle.italic,
-                    ),),
+                    title: Text(
+                      'GC / Coco',
+                      style: GoogleFonts.montserrat(
+                        fontSize: 14,
+                        color: Color(0xff12283D),
+                        fontWeight: FontWeight.w500,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
                     leading: Radio(
                       fillColor: MaterialStateProperty.all(Color(0xff12283D)),
-                      overlayColor:  MaterialStateProperty.all(Color(0xff12283D)),
+                      overlayColor:
+                          MaterialStateProperty.all(Color(0xff12283D)),
                       value: "GC / Coco",
                       groupValue: _site,
                       onChanged: (value) {
@@ -795,12 +927,9 @@ class _CreateOrderState extends State<Create_Order> {
                     ),
                   ),
                 ),
-
               ],
             ),
-
             if (_site == "Self")
-
               TextFormField(
                 controller: tlController,
                 keyboardType: TextInputType.text,

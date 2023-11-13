@@ -1,21 +1,14 @@
 import 'dart:convert';
 
 import 'package:dropdown_plus/dropdown_plus.dart';
-import 'package:fl_chart/fl_chart.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:hascol_dealer/screens/create_order.dart';
-import 'package:hascol_dealer/screens/create_order_lubricant.dart';
 import 'package:hascol_dealer/screens/home.dart';
-import 'package:hascol_dealer/screens/login.dart';
 import 'package:hascol_dealer/screens/profile.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
-import 'package:dropdown_textfield/dropdown_textfield.dart';
 import 'package:http/http.dart' as http;
 
 class Lubricant extends StatefulWidget {
@@ -36,6 +29,10 @@ final TextEditingController ctn_size = TextEditingController();
 final TextEditingController Packs_in_ctn = TextEditingController();
 final TextEditingController total_pack = TextEditingController();
 final TextEditingController total_order = TextEditingController();
+
+String searchQuery = ''; // State to store the search query
+List<Map<String, dynamic>> filteredData = []; // Filtered list based on search
+List<Map<String, dynamic>> apiData = []; // Define apiData outside the widget build function
 
 class _LubricantState extends State<Lubricant> {
   @override
@@ -132,6 +129,16 @@ class _LubricantState extends State<Lubricant> {
     } else {
       throw Exception('Failed to load data from the API');
     }
+  }
+  void filterData(String query) {
+    setState(() {
+      searchQuery = query;
+      if (query.isNotEmpty) {
+        filteredData = apiData.where((order) => order['id'].contains(query)).toList();
+      } else {
+        filteredData = List<Map<String, dynamic>>.from(apiData);
+      }
+    });
   }
 
   int _selectedIndex = 1;
@@ -300,7 +307,7 @@ class _LubricantState extends State<Lubricant> {
                                           ),
                                         ),
                                         style: ElevatedButton.styleFrom(
-                                          primary: Color(0xffe81329),
+                                          backgroundColor: Color(0xffe81329),
                                         ),
                                         onPressed: sendOrderDataToAPI,
                                       ),
@@ -321,7 +328,7 @@ class _LubricantState extends State<Lubricant> {
                   size: 24.0,
                 ),
                 style: ElevatedButton.styleFrom(
-                  primary: Color(0xff3B8D5A), // Background color
+                  backgroundColor: Color(0xff3B8D5A), // Background color
                 ),
                 label: Text(
                   'Lubricant Order',
@@ -350,13 +357,16 @@ class _LubricantState extends State<Lubricant> {
                   decoration: InputDecoration(
                       prefixIcon: Icon(FluentIcons.search_12_regular,
                           color: Color(0xff8d8d8d)),
-                      hintText: 'Search...',
+                      hintText: 'Search using Order Number',
                       hintStyle: GoogleFonts.montserrat(
                           fontWeight: FontWeight.w300,
                           fontStyle: FontStyle.normal,
                           color: Color(0xff12283D),
                           fontSize: 16),
                       border: InputBorder.none),
+                  onChanged: (value) {
+                    filterData(value);
+                  },
                 ),
               ),
               SizedBox(
@@ -375,129 +385,161 @@ class _LubricantState extends State<Lubricant> {
                     );
                   } else if (snapshot.hasData) {
                     final apiData = snapshot.data!;
+                    filteredData = List<Map<String, dynamic>>.from(apiData); // Assign to filtered data initially
+                    if (searchQuery.isNotEmpty) {
+                      filteredData = apiData.where((order) => order['id'].contains(searchQuery)).toList();
+                    }
                     return ListView.builder(
                       shrinkWrap: true,
                       physics: NeverScrollableScrollPhysics(),
-                      itemCount: apiData.length,
+                      itemCount: filteredData.length,
                       itemBuilder: (context, index) {
-                        final item = apiData[index];
+                        final item = filteredData[index];
                         return Card(
                           elevation: 10,
-                          color: Color(0xffF0F0F0),
+                          color: Color(0xffffffff),
                           child: Padding(
                             padding: const EdgeInsets.all(7.0),
-                            child: Column(
+                            child: Row(
                               children: [
-                                Row(
-                                  children: [
-                                    Text(
-                                      'Lubricant Order#: ${item['id']}',
-                                      style: GoogleFonts.montserrat(
-                                        fontWeight: FontWeight.w600,
-                                        fontStyle: FontStyle.normal,
-                                        color: Color(0xff12283D),
-                                        fontSize: 16,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text('Type: ${item['grade']}',
-                                      style: GoogleFonts.montserrat(
-                                        fontWeight: FontWeight.w600,
-                                        fontStyle: FontStyle.normal,
-                                        color: Color(0xff3B8D5A),
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                    Text('Code: ${item['code']}',
-                                      style: GoogleFonts.montserrat(
-                                        fontWeight: FontWeight.w600,
-                                        fontStyle: FontStyle.normal,
-                                        color: Color(0xff3B8D5A),
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                  ],
-                                ),
                                 Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  padding: const EdgeInsets.all(12.0),
+                                  child: Column(
                                     children: [
-                                      Row(
-                                        children: [
-                                          Text('ctn size'),
-                                          Text('${item['ctn_size']}',
-                                            style: GoogleFonts.montserrat(
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      Row(
-                                        children: [
-                                          Text('pack_ctn'),
-                                          Text('${item['pack_ctn']}',
-                                            style: GoogleFonts.montserrat(
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ],
+                                      CircleAvatar(
+                                        radius:
+                                        28, // Adjust the size of the circular avatar
+                                        backgroundColor: Color(0xffE7AD18),
+                                        child: Image.asset(
+                                          "assets/images/engine-oil (1).png",
+                                          width: 38,
+                                          height: 38,
+                                        ),
                                       ),
                                     ],
                                   ),
                                 ),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                         children: [
-                                          Text('pack_size: '),
-                                          Text('${item['pack_size']}',
-                                            style: GoogleFonts.montserrat(
-                                              fontWeight: FontWeight.bold,
-                                            ),
+                                          Column(
+                                            children: [
+                                              Text(
+                                                'ORDER#: ${item['id']}',
+                                                style: GoogleFonts.montserrat(
+                                                  fontWeight: FontWeight.w600,
+                                                  fontStyle: FontStyle.normal,
+                                                  color: Color(0xff12283D),
+                                                  fontSize: 14,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          Column(
+                                            children: [
+                                              Container(
+                                                decoration: BoxDecoration(
+                                                  color: Color(0xffE7AD18),
+                                                  borderRadius: BorderRadius.only(
+                                                    topLeft: Radius.circular(12.0), // Curved top left corner
+                                                    bottomLeft: Radius.circular(12.0), // Curved bottom left corner
+                                                  ),
+                                                ),
+                                                child: Padding(
+                                                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                                  child: Text(
+                                                    ' PROCESSING ',
+                                                    style: GoogleFonts.poppins(
+                                                      fontWeight: FontWeight.w500,
+                                                      fontStyle: FontStyle.normal,
+                                                      color: Colors.white,
+                                                      fontSize: 12,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
                                           ),
                                         ],
                                       ),
                                       Row(
                                         children: [
-                                          Text('total_pack '),
-                                          Text('${item['total_pack']}Pc',
-                                            style: GoogleFonts.montserrat(
-                                              fontWeight: FontWeight.bold,
-                                            ),
+                                          Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
+                                                children: [
+                                                  Text('Type:'),
+                                                  Text(' ${item['grade']}',
+                                                    style: GoogleFonts.montserrat(
+                                                      fontWeight: FontWeight.w600,
+                                                      fontStyle: FontStyle.normal,
+                                                      color: Color(0xff3B8D5A),
+                                                      fontSize: 12,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                              Text('CTN Size: ${item['ctn_size']}'),
+                                              Text('Pack Size: ${item['pack_size']}'),
+                                            ],
+                                          ),
+                                          Column(
+                                            children: [
+                                              Text(" | "),
+                                              Text(" | "),
+                                              Text(" | "),
+                                            ],
+                                          ),
+                                          Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
+                                                children: [
+                                                  Text("Code:"),
+                                                  Text(' ${item['code']}',
+                                                    style: GoogleFonts.montserrat(
+                                                      fontWeight: FontWeight.w600,
+                                                      fontStyle: FontStyle.normal,
+                                                      color: Color(0xff3B8D5A),
+                                                      fontSize: 12,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                              Text('Pack CTN: ${item['pack_ctn']}'),
+                                              Text('Total Pack: ${item['total_pack']}'),
+                                            ],
                                           ),
                                         ],
                                       ),
-                                    ],
-                                  ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: 8.0,),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Text('Total Order: ${item['total_order']}',
+                                      Padding(
+                                        padding: const EdgeInsets.only(top: 8.0,),
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.start,
+                                          children: [
+                                            Text('Total Order: ${item['total_order']}',
+                                            ),
+                                          ],
+                                        ),
                                       ),
-                                    ],
-                                  ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: 8.0,),
-                                  child: Row(
-                                    children: [
-                                      Text('${item['created_at']}',
-                                        style: GoogleFonts.montserrat(
-                                          fontWeight: FontWeight.w200,
-                                          fontStyle: FontStyle.normal,
-                                          color: Color(0xff737373),
-                                          fontSize: 12,
+                                      Padding(
+                                        padding: const EdgeInsets.only(bottom: 8.0,),
+                                        child: Row(
+                                          children: [
+                                            Text('${item['created_at']}',
+                                              style: GoogleFonts.montserrat(
+                                                fontWeight: FontWeight.w200,
+                                                fontStyle: FontStyle.normal,
+                                                color: Color(0xff737373),
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
                                     ],

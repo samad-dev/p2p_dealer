@@ -84,11 +84,14 @@ flutter:
     - assets/images/puma_video.mp4
     - assets/images/puma_logo.svg
     - assets/images/puma_logo2.svg
-    - assets/images/engine-oil.png
+    - assets/images/engine-oil (1).png
+    - assets/images/cargo.png
     - assets/images/completed-task.png
     - assets/images/coverall.png
     - assets/images/gps (1).png
     - assets/images/gas-station.png
+    - assets/images/shirt.png
+    - assets/images/complain.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

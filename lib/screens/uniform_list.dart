@@ -1,20 +1,13 @@
 import 'dart:convert';
 
 import 'package:dropdown_plus/dropdown_plus.dart';
-import 'package:fl_chart/fl_chart.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:hascol_dealer/screens/create_order.dart';
-import 'package:hascol_dealer/screens/create_order_uniform.dart';
 import 'package:hascol_dealer/screens/home.dart';
-import 'package:hascol_dealer/screens/login.dart';
 import 'package:hascol_dealer/screens/profile.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
-import 'package:dropdown_textfield/dropdown_textfield.dart';
 import 'package:http/http.dart' as http;
 import 'package:fluttertoast/fluttertoast.dart';
 
@@ -25,17 +18,26 @@ class Uniform extends StatefulWidget {
   @override
   _UniformState createState() => _UniformState();
 }
+
 List<String> uniform_type_list = [];
 List<String> uniform_id_list = [];
 String? selectedUniformId;
 
 String? selectedOption;
 String? selectedUniformType;
-final TextEditingController smallQuantityController = TextEditingController(text: '0');
-final TextEditingController mediumQuantityController = TextEditingController(text: '0');
-final TextEditingController largeQuantityController = TextEditingController(text: '0');
-final TextEditingController extraLargeQuantityController = TextEditingController(text: '0');
+final TextEditingController smallQuantityController =
+    TextEditingController(text: '0');
+final TextEditingController mediumQuantityController =
+    TextEditingController(text: '0');
+final TextEditingController largeQuantityController =
+    TextEditingController(text: '0');
+final TextEditingController extraLargeQuantityController =
+    TextEditingController(text: '0');
 List<Map<String, dynamic>> apiData = [];
+
+String searchQuery = ''; // State to store the search query
+List<Map<String, dynamic>> filteredData = []; // Filtered list based on search
+
 class _UniformState extends State<Uniform> {
   @override
   void initState() {
@@ -47,12 +49,13 @@ class _UniformState extends State<Uniform> {
   Future<void> uniform_type_data() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     var id = prefs.getString("Id");
-    final response = await http.get(
-        Uri.parse('http://151.106.17.246:8080/OMCS-CMS-APIS/get/get_uniform_type.php?key=03201232927&dealer_id=$id'));
+    final response = await http.get(Uri.parse(
+        'http://151.106.17.246:8080/OMCS-CMS-APIS/get/get_uniform_type.php?key=03201232927&dealer_id=$id'));
 
     if (response.statusCode == 200) {
       List<dynamic> data = json.decode(response.body);
-      List<String> typeList = data.map((item) => item['type'].toString()).toList();
+      List<String> typeList =
+          data.map((item) => item['type'].toString()).toList();
       List<String> idList = data.map((item) => item['id'].toString()).toList();
 
       setState(() {
@@ -63,10 +66,12 @@ class _UniformState extends State<Uniform> {
       throw Exception('Failed to fetch data from the API');
     }
   } // for getting uniform type from api
+
   void sendOrderDataToAPI() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     var id = prefs.getString("Id");
-    final apiUrl = "http://151.106.17.246:8080/OMCS-CMS-APIS/create/create_uniform_order.php";
+    final apiUrl =
+        "http://151.106.17.246:8080/OMCS-CMS-APIS/create/create_uniform_order.php";
     final data = {
       "type": selectedUniformId,
       "dealer_id": id,
@@ -115,11 +120,13 @@ class _UniformState extends State<Uniform> {
       extraLargeQuantityController.clear();
     }
   } // for sending order of uniform to api
+
   Future<List<Map<String, dynamic>>?> fetchDataFromAPI() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     var id = prefs.getString("Id");
     final response = await http.get(
-      Uri.parse('http://151.106.17.246:8080/OMCS-CMS-APIS/get/dealers_uniform_orders.php?key=03201232927&dealer_id=$id'),
+      Uri.parse(
+          'http://151.106.17.246:8080/OMCS-CMS-APIS/get/dealers_uniform_orders.php?key=03201232927&dealer_id=$id'),
     );
 
     if (response.statusCode == 200) {
@@ -128,6 +135,18 @@ class _UniformState extends State<Uniform> {
     } else {
       throw Exception('Failed to load data from the API');
     }
+  }
+
+  void filterData(String query) {
+    setState(() {
+      searchQuery = query;
+      if (query.isNotEmpty) {
+        filteredData =
+            apiData.where((order) => order['id'].contains(query)).toList();
+      } else {
+        filteredData = List<Map<String, dynamic>>.from(apiData);
+      }
+    });
   }
 
   int _selectedIndex = 1;
@@ -146,7 +165,8 @@ class _UniformState extends State<Uniform> {
             icon: Icon(Icons.arrow_back_ios), // Use the back arrow icon
             color: Color(0xff12283D),
             onPressed: () {
-              Navigator.of(context).pop(); // Pop the current page when the back button is pressed
+              Navigator.of(context)
+                  .pop(); // Pop the current page when the back button is pressed
             },
           ),
           title: Text(
@@ -166,48 +186,65 @@ class _UniformState extends State<Uniform> {
                     context: context,
                     isScrollControlled: true,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.vertical(top: Radius.circular(25.0)),
+                      borderRadius:
+                          BorderRadius.vertical(top: Radius.circular(25.0)),
                     ),
                     builder: (BuildContext context) {
                       return SingleChildScrollView(
-                        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-                        child: Padding(padding: const EdgeInsets.all(16.0),
+                        padding: EdgeInsets.only(
+                            bottom: MediaQuery.of(context).viewInsets.bottom),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: <Widget>[
-                              Padding(padding: const EdgeInsets.all(16.0),
+                              Padding(
+                                padding: const EdgeInsets.all(16.0),
                                 child: Column(
                                   children: [
                                     Padding(
                                       padding: const EdgeInsets.all(16.0),
                                       child: Text(
                                         'Uniform Details',
-                                        style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
+                                        style: TextStyle(
+                                            fontSize: 18.0,
+                                            fontWeight: FontWeight.bold),
                                       ),
                                     ),
-                                    SizedBox( height: 10,),
-                                    TextDropdownFormField(// Set the selected value
+                                    SizedBox(
+                                      height: 10,
+                                    ),
+                                    TextDropdownFormField(
+                                      // Set the selected value
                                       options: uniform_type_list,
                                       decoration: InputDecoration(
                                         border: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(18.0),
+                                          borderRadius:
+                                              BorderRadius.circular(18.0),
                                         ),
-                                        suffixIcon: Icon(Icons.arrow_drop_down_circle_outlined),
+                                        suffixIcon: Icon(Icons
+                                            .arrow_drop_down_circle_outlined),
                                         labelText: "Select uniform type",
                                       ),
                                       dropdownHeight: 100,
                                       onChanged: (dynamic value) {
                                         setState(() {
-                                          selectedUniformType = value; // Set the selected type
+                                          selectedUniformType =
+                                              value; // Set the selected type
                                           // Find the index of the selected type in uniform_type_list
-                                          int index = uniform_type_list.indexOf(value);
-                                          if (index >= 0 && index < uniform_id_list.length) {
-                                            selectedUniformId = uniform_id_list[index]; // Set the corresponding ID
+                                          int index =
+                                              uniform_type_list.indexOf(value);
+                                          if (index >= 0 &&
+                                              index < uniform_id_list.length) {
+                                            selectedUniformId = uniform_id_list[
+                                                index]; // Set the corresponding ID
                                           }
                                         });
                                       },
                                     ),
-                                    SizedBox( height: 10,),
+                                    SizedBox(
+                                      height: 10,
+                                    ),
                                     Row(
                                       children: [
                                         Expanded(
@@ -221,10 +258,13 @@ class _UniformState extends State<Uniform> {
                                             ),
                                           ),
                                         ),
-                                        SizedBox(width: 10), // Add some spacing between the two text fields
+                                        SizedBox(
+                                            width:
+                                                10), // Add some spacing between the two text fields
                                         Expanded(
                                           child: TextField(
-                                            controller: mediumQuantityController,
+                                            controller:
+                                                mediumQuantityController,
                                             keyboardType: TextInputType.number,
                                             decoration: InputDecoration(
                                               labelText: 'Quantity for Medium',
@@ -235,7 +275,9 @@ class _UniformState extends State<Uniform> {
                                         ),
                                       ],
                                     ),
-                                    SizedBox( height: 10,),
+                                    SizedBox(
+                                      height: 10,
+                                    ),
                                     Row(
                                       children: [
                                         Expanded(
@@ -249,13 +291,17 @@ class _UniformState extends State<Uniform> {
                                             ),
                                           ),
                                         ),
-                                        SizedBox(width: 10), // Add some spacing between the two text fields
+                                        SizedBox(
+                                            width:
+                                                10), // Add some spacing between the two text fields
                                         Expanded(
                                           child: TextField(
-                                            controller: extraLargeQuantityController,
+                                            controller:
+                                                extraLargeQuantityController,
                                             keyboardType: TextInputType.number,
                                             decoration: InputDecoration(
-                                              labelText: 'Quantity for Extra Large',
+                                              labelText:
+                                                  'Quantity for Extra Large',
                                               border: OutlineInputBorder(),
                                               hintText: '0',
                                             ),
@@ -263,14 +309,17 @@ class _UniformState extends State<Uniform> {
                                         ),
                                       ],
                                     ),
-                                    SizedBox( height: 10,),
+                                    SizedBox(
+                                      height: 10,
+                                    ),
                                     Container(
-                                      child:Row(
+                                      child: Row(
                                         children: [
                                           Expanded(
                                             child: ElevatedButton(
                                               child: Padding(
-                                                padding: const EdgeInsets.all(10.0),
+                                                padding:
+                                                    const EdgeInsets.all(10.0),
                                                 child: Text(
                                                   'Confirmed Order',
                                                   style: GoogleFonts.raleway(
@@ -281,9 +330,9 @@ class _UniformState extends State<Uniform> {
                                                 ),
                                               ),
                                               style: ElevatedButton.styleFrom(
-                                                primary: Color(0xffe81329),
+                                                backgroundColor: Color(0xffe81329),
                                               ),
-                                                onPressed: sendOrderDataToAPI,
+                                              onPressed: sendOrderDataToAPI,
                                             ),
                                           ),
                                         ],
@@ -292,7 +341,6 @@ class _UniformState extends State<Uniform> {
                                   ],
                                 ),
                               ),
-
                             ],
                           ),
                         ),
@@ -306,7 +354,7 @@ class _UniformState extends State<Uniform> {
                   size: 24.0,
                 ),
                 style: ElevatedButton.styleFrom(
-                  primary: Color(0xff3B8D5A), // Background color
+                  backgroundColor: Color(0xff3B8D5A), // Background color
                 ),
                 label: Text(
                   'Uniform Order',
@@ -322,157 +370,203 @@ class _UniformState extends State<Uniform> {
           ],
         ),
         body: SingleChildScrollView(
-            child:  RefreshIndicator(
-              onRefresh:fetchDataFromAPI,
-              child: Container(
-                padding: EdgeInsets.all(18),
-                child: Column(
-                  children: [
-                    Card(
-                      color: Colors.white,
-                      shape: RoundedRectangleBorder(
+            child: RefreshIndicator(
+          onRefresh: fetchDataFromAPI,
+          child: Container(
+            padding: EdgeInsets.all(18),
+            child: Column(
+              children: [
+                Card(
+                  color: Colors.white,
+                  shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.all(Radius.circular(10))),
-                      elevation: 5,
-                      child: TextField(
-                        decoration: InputDecoration(
-                            prefixIcon: Icon(FluentIcons.search_12_regular,
-                                color: Color(0xff8d8d8d)),
-                            hintText: 'Search...',
-                            hintStyle: GoogleFonts.montserrat(
+                  elevation: 5,
+                  child: TextField(
+                    decoration: InputDecoration(
+                        prefixIcon: Icon(FluentIcons.search_12_regular,
+                            color: Color(0xff8d8d8d)),
+                        hintText: 'Search using Order Number',
+                        hintStyle: GoogleFonts.montserrat(
                             fontWeight: FontWeight.w300,
                             fontStyle: FontStyle.normal,
                             color: Color(0xff12283D),
-                                fontSize: 16),
-                            border: InputBorder.none),
-                      ),
-                    ),
-                    SizedBox(
-                      height: 10,
-                    ),
-                    FutureBuilder<List<Map<String, dynamic>>?>(
-                      future: fetchDataFromAPI(),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.waiting) {
-                          return Center(
-                            child: CircularProgressIndicator(),
-                          );
-                        } else if (snapshot.hasError) {
-                          return Center(
-                            child: Text('Error: ${snapshot.error}'),
-                          );
-                        } else if (snapshot.hasData) {
-                          final apiData = snapshot.data!;
-                          return ListView.builder(
-                            shrinkWrap: true,
-                            physics: NeverScrollableScrollPhysics(),
-                            itemCount: apiData.length,
-                            itemBuilder: (context, index) {
-                              final item = apiData[index];
-                              return Card(
-                                elevation: 10,
-                                color: Color(0xffF0F0F0),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(7.0),
-                                  child: Column(
+                            fontSize: 16),
+                        border: InputBorder.none),
+                    onChanged: (value) {
+                      filterData(value);
+                    },
+                  ),
+                ),
+                SizedBox(
+                  height: 10,
+                ),
+                FutureBuilder<List<Map<String, dynamic>>?>(
+                  future: fetchDataFromAPI(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    } else if (snapshot.hasError) {
+                      return Center(
+                        child: Text('Error: ${snapshot.error}'),
+                      );
+                    } else if (snapshot.hasData) {
+                      final apiData = snapshot.data!;
+                      filteredData = List<Map<String, dynamic>>.from(
+                          apiData); // Assign to filtered data initially
+                      if (searchQuery.isNotEmpty) {
+                        filteredData = apiData
+                            .where((order) => order['id'].contains(searchQuery))
+                            .toList();
+                      }
+                      return ListView.builder(
+                        shrinkWrap: true,
+                        physics: NeverScrollableScrollPhysics(),
+                        itemCount: filteredData.length,
+                        itemBuilder: (context, index) {
+                          final item = filteredData[index];
+                          return Card(
+                            elevation: 10,
+                            color: Colors.white,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 15.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
                                     children: [
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Text(
-                                            'Uniform Order#: ${item['id']}',
-                                            style: GoogleFonts.montserrat(
-                                              fontWeight: FontWeight.w700,
-                                              fontStyle: FontStyle.normal,
-                                              color: Color(0xff12283D),
-                                              fontSize: 16,
-                                            ),
-                                          ),
-                                          Image.asset(
-                                            "assets/images/coverall.png",
-                                            width: 40,
-                                            height: 40,
-                                            
-                                          ),
-                                        ],
-                                      ),
-                                      Row(
-                                        children: [
-                                          Text('Type: ${item['type_name']}',
-                                            style: GoogleFonts.montserrat(
-                                              fontWeight: FontWeight.w600,
-                                              fontStyle: FontStyle.normal,
-                                              color: Color(0xff3B8D5A),
-                                              fontSize: 12,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
                                       Padding(
-                                        padding: const EdgeInsets.symmetric(horizontal: 0.0),
-                                        child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        padding: const EdgeInsets.all(12.0),
+                                        child: Column(
                                           children: [
-                                            Row(
-                                              children: [
-                                                Text('Small: '),
-                                                Text('${item['sm']}Pc',
-                                                  style: GoogleFonts.montserrat(
-                                                  fontWeight: FontWeight.bold,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                            Row(
-                                              children: [
-                                                Text('Medium: '),
-                                                Text('${item['md']}Pc',
-                                                  style: GoogleFonts.montserrat(
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
-                                                ),
-                                              ],
+                                            CircleAvatar(
+                                              radius:
+                                                  28, // Adjust the size of the circular avatar
+                                              backgroundColor: Color(0xffE7AD18),
+                                              child: Image.asset(
+                                                "assets/images/shirt.png",
+                                                width: 38,
+                                                height: 38,
+                                              ),
                                             ),
                                           ],
                                         ),
                                       ),
-                                      Padding(
-                                          padding: const EdgeInsets.symmetric(horizontal: 0.0),
-                                        child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
                                             Row(
+                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                               children: [
-                                                Text('Large: '),
-                                                Text('${item['lg']}Pc',
-                                                  style: GoogleFonts.montserrat(
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
+                                                Column(
+                                                  children: [
+                                                    Text(
+                                                      'ORDER#: ${item['id']}',
+                                                      style: GoogleFonts.montserrat(
+                                                        fontWeight: FontWeight.w700,
+                                                        fontStyle: FontStyle.normal,
+                                                        color: Color(0xff12283D),
+                                                        fontSize: 14,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                Column(
+                                                  children: [
+                                                    Container(
+                                                      decoration: BoxDecoration(
+                                                        color: Color(0xffE7AD18),
+                                                        borderRadius: BorderRadius.only(
+                                                          topLeft: Radius.circular(12.0), // Curved top left corner
+                                                          bottomLeft: Radius.circular(12.0), // Curved bottom left corner
+                                                        ),
+                                                      ),
+                                                      child: Padding(
+                                                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                                        child: Text(
+                                                          ' PROCESSING ',
+                                                          style: GoogleFonts.poppins(
+                                                            fontWeight: FontWeight.w500,
+                                                            fontStyle: FontStyle.normal,
+                                                            color: Colors.white,
+                                                            fontSize: 12,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
                                                 ),
                                               ],
                                             ),
                                             Row(
                                               children: [
-                                                Text('Extra Large: '),
-                                                Text('${item['xl']}Pc',
+                                                Text('Type: '),
+                                                Text(
+                                                  '${item['type_name']}',
                                                   style: GoogleFonts.montserrat(
                                                     fontWeight: FontWeight.bold,
+                                                    fontStyle: FontStyle.normal,
+                                                    color: Color(0xff3B8D5A),
+                                                    fontSize: 12,
                                                   ),
                                                 ),
                                               ],
                                             ),
-                                          ],
-                                        ),
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.symmetric(vertical: 8.0,),
-                                        child: Row(
-                                          children: [
-                                            Text('${item['created_at']}',
-                                              style: GoogleFonts.montserrat(
-                                                fontWeight: FontWeight.w200,
-                                                fontStyle: FontStyle.normal,
-                                                color: Color(0xff737373),
-                                                fontSize: 12,
+                                            Row(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                        'Small: ${item['sm']}Pc'),
+                                                    Text(
+                                                        'Large: ${item['lg']}Pc'),
+                                                  ],
+                                                ),
+                                                Column(
+                                                  children: [
+                                                    Text(' | '),
+                                                    Text(' | '),
+                                                  ],
+                                                ),
+                                                Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                        'Medium: ${item['md']}Pc'),
+                                                    Text(
+                                                        'Extra Large: ${item['xl']}Pc'),
+                                                  ],
+                                                ),
+                                              ],
+                                            ),
+                                            Padding(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                vertical: 8.0,
+                                              ),
+                                              child: Row(
+                                                children: [
+                                                  Text(
+                                                    '${item['created_at']}',
+                                                    style:
+                                                        GoogleFonts.montserrat(
+                                                      fontWeight:
+                                                          FontWeight.w200,
+                                                      fontStyle:
+                                                          FontStyle.normal,
+                                                      color: Color(0xff737373),
+                                                      fontSize: 12,
+                                                    ),
+                                                  ),
+                                                ],
                                               ),
                                             ),
                                           ],
@@ -480,12 +574,12 @@ class _UniformState extends State<Uniform> {
                                       ),
                                     ],
                                   ),
-                                ),
-
-
+                                ],
+                              ),
+                            ),
                           );
-                          },
-                          );
+                        },
+                      );
                     } else {
                       return Center(
                         child: Text('No data available.'),
@@ -731,9 +825,9 @@ class _UniformState extends State<Uniform> {
 
                  */
               ],
+            ),
           ),
-        ),
-            )),
+        )),
         /*
         bottomNavigationBar: Container(
           decoration: BoxDecoration(

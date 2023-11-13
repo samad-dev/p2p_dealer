@@ -1,18 +1,11 @@
 import 'dart:convert';
 
 import 'package:dropdown_plus/dropdown_plus.dart';
-import 'package:fl_chart/fl_chart.dart';
-import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:hascol_dealer/screens/home.dart';
-import 'package:hascol_dealer/screens/login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
-import 'package:dropdown_textfield/dropdown_textfield.dart';
 
 class Create_Complaints extends StatefulWidget {
   static const Color contentColorOrange = Color(0xFF00705B);

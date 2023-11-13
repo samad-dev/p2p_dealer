@@ -1,21 +1,14 @@
 import 'dart:convert';
 
 import 'package:dropdown_plus/dropdown_plus.dart';
-import 'package:fl_chart/fl_chart.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:hascol_dealer/screens/complaint.dart';
-import 'package:hascol_dealer/screens/create_order.dart';
 import 'package:hascol_dealer/screens/home.dart';
-import 'package:hascol_dealer/screens/login.dart';
 import 'package:hascol_dealer/screens/profile.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
-import 'package:dropdown_textfield/dropdown_textfield.dart';
 import 'package:http/http.dart' as http;
 
 
@@ -40,6 +33,10 @@ String? selecteddamformType;
 final TextEditingController damage = TextEditingController();
 final TextEditingController dam_text = TextEditingController();
 final TextEditingController cause_text = TextEditingController();
+
+String searchQuery = ''; // State to store the search query
+List<Map<String, dynamic>> filteredData = []; // Filtered list based on search
+List<Map<String, dynamic>> apiData = []; // Define apiData outside the widget build function
 
 class _ComplaintsState extends State<Complaints> {
   @override
@@ -147,6 +144,16 @@ class _ComplaintsState extends State<Complaints> {
     } else {
       throw Exception('Failed to load data from the API');
     }
+  }
+  void filterData(String query) {
+    setState(() {
+      searchQuery = query;
+      if (query.isNotEmpty) {
+        filteredData = apiData.where((order) => order['id'].contains(query)).toList();
+      } else {
+        filteredData = List<Map<String, dynamic>>.from(apiData);
+      }
+    });
   }
 
   int _selectedIndex = 1;
@@ -298,7 +305,7 @@ class _ComplaintsState extends State<Complaints> {
                                                 ),
                                               ),
                                               style: ElevatedButton.styleFrom(
-                                                primary: Color(0xffe81329),
+                                                backgroundColor: Color(0xffe81329),
                                               ),
                                               onPressed: sendOrderDataToAPI,
                                             ),
@@ -322,7 +329,7 @@ class _ComplaintsState extends State<Complaints> {
                   size: 24.0,
                 ),
                 style: ElevatedButton.styleFrom(
-                  primary: Color(0xff3B8D5A), // Background color
+                  backgroundColor: Color(0xff3B8D5A), // Background color
                 ),
                 label: Text(
                   'Create Complaint',
@@ -351,13 +358,16 @@ class _ComplaintsState extends State<Complaints> {
                   decoration: InputDecoration(
                       prefixIcon: Icon(FluentIcons.search_12_regular,
                           color: Color(0xff8d8d8d)),
-                      hintText: 'Search...',
+                      hintText: 'Search using Complaint Number',
                       hintStyle: GoogleFonts.montserrat(
                           fontWeight: FontWeight.w300,
                           fontStyle: FontStyle.normal,
                           color: Color(0xff12283D),
                           fontSize: 16),
                       border: InputBorder.none),
+                  onChanged: (value) {
+                    filterData(value);
+                  },
                 ),
               ),
               SizedBox(
@@ -376,98 +386,158 @@ class _ComplaintsState extends State<Complaints> {
                     );
                   } else if (snapshot.hasData) {
                     final apiData = snapshot.data!;
+                    filteredData = List<Map<String, dynamic>>.from(apiData); // Assign to filtered data initially
+                    if (searchQuery.isNotEmpty) {
+                      filteredData = apiData.where((order) => order['id'].contains(searchQuery)).toList();
+                    }
                     return ListView.builder(
                       shrinkWrap: true,
                       physics: NeverScrollableScrollPhysics(),
-                      itemCount: apiData.length,
+                      itemCount: filteredData.length,
                       itemBuilder: (context, index) {
-                        final item = apiData[index];
+                        final item = filteredData[index];
                         return Card(
                           elevation: 10,
-                          color: Color(0xffF0F0F0),
+                          color: Color(0xffFFFFFF),
                           child: Padding(
-                            padding: const EdgeInsets.all(7.0),
+                            padding: const EdgeInsets.symmetric(vertical: 15.0),
                             child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Row(
                                   children: [
-                                    Text(
-                                      'Complaint#: ${item['id']}',
-                                      style: GoogleFonts.montserrat(
-                                        fontWeight: FontWeight.w600,
-                                        fontStyle: FontStyle.normal,
-                                        color: Color(0xff12283D),
-                                        fontSize: 16,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text('Object: ${item['object_name']}',
-                                      style: GoogleFonts.montserrat(
-                                        fontWeight: FontWeight.w600,
-                                        fontStyle: FontStyle.normal,
-                                        color: Color(0xff3B8D5A),
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                    Text('Damage: ${item['damage_name']}',
-                                      style: GoogleFonts.montserrat(
-                                        fontWeight: FontWeight.w600,
-                                        fontStyle: FontStyle.normal,
-                                        color: Color(0xff3B8D5A),
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: 2.0,),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    children: [
-                                      Text('Damage: ${item['damage']}',
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: 2.0,),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    children: [
-                                      Text('Text: ${item['text']}',
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: 2.0,),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    children: [
-                                      Text('Cause Text: ${item['cause_text']}',
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: 8.0,),
-                                  child: Row(
-                                    children: [
-                                      Text('${item['created_at']}',
-                                        style: GoogleFonts.montserrat(
-                                          fontWeight: FontWeight.w200,
-                                          fontStyle: FontStyle.normal,
-                                          color: Color(0xff737373),
-                                          fontSize: 12,
+                                    Column(
+                                      children: [
+                                        Padding(
+                                          padding: const EdgeInsets.all(12.0),
+                                          child: CircleAvatar(
+                                            radius:
+                                            28, // Adjust the size of the circular avatar
+                                            backgroundColor: Color(0xffE7AD18),
+                                            child: Image.asset(
+                                              "assets/images/complain.png",
+                                              width: 38,
+                                              height: 38,
+                                            ),
+                                          ),
                                         ),
+                                      ],
+                                    ),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Column(
+                                                children: [
+                                                  Text(
+                                                    'COMPLAINT#: ${item['id']}',
+                                                    style: GoogleFonts.montserrat(
+                                                      fontWeight: FontWeight.w600,
+                                                      fontStyle: FontStyle.normal,
+                                                      color: Color(0xff12283D),
+                                                      fontSize: 14,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                              Column(
+                                                children: [
+                                                  Container(
+                                                    decoration: BoxDecoration(
+                                                      color: Color(0xffE7AD18),
+                                                      borderRadius: BorderRadius.only(
+                                                        topLeft: Radius.circular(12.0), // Curved top left corner
+                                                        bottomLeft: Radius.circular(12.0), // Curved bottom left corner
+                                                      ),
+                                                    ),
+                                                    child: Padding(
+                                                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                                      child: Text(
+                                                        ' PROCESSING ',
+                                                        style: GoogleFonts.poppins(
+                                                          fontWeight: FontWeight.w500,
+                                                          fontStyle: FontStyle.normal,
+                                                          color: Colors.white,
+                                                          fontSize: 12,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
+                                          ),
+                                          Row(
+                                            children: [
+                                              Text("Object:"),
+                                              Text(' ${item['object_name']}',
+                                                style: GoogleFonts.montserrat(
+                                                  fontWeight: FontWeight.w600,
+                                                  fontStyle: FontStyle.normal,
+                                                  color: Color(0xff3B8D5A),
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          Row(
+                                            children: [
+                                              Text("Damage Overview:"),
+                                              Text(' ${item['damage_name']}',
+                                                style: GoogleFonts.montserrat(
+                                                  fontWeight: FontWeight.w600,
+                                                  fontStyle: FontStyle.normal,
+                                                  color: Color(0xff3B8D5A),
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          Row(
+                                            mainAxisAlignment: MainAxisAlignment.start,
+                                            children: [
+                                              Text('Damage: ${item['damage']}',
+                                              ),
+                                            ],
+                                          ),
+                                          Row(
+                                            mainAxisAlignment: MainAxisAlignment.start,
+                                            children: [
+                                              Text('Text: ${item['text']}',
+                                              ),
+                                            ],
+                                          ),
+                                          Row(
+                                            mainAxisAlignment: MainAxisAlignment.start,
+                                            children: [
+                                              Text('Cause Text: ${item['cause_text']}',
+                                              ),
+                                            ],
+                                          ),
+                                          Padding(
+                                            padding: const EdgeInsets.symmetric(vertical: 8.0,),
+                                            child: Row(
+                                              children: [
+                                                Text('${item['created_at']}',
+                                                  style: GoogleFonts.montserrat(
+                                                    fontWeight: FontWeight.w200,
+                                                    fontStyle: FontStyle.normal,
+                                                    color: Color(0xff737373),
+                                                    fontSize: 12,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                    ],
-                                  ),
+                                    ),
+                                  ],
                                 ),
+
                               ],
                             ),
                           ),
@@ -760,6 +830,53 @@ class _ComplaintsState extends State<Complaints> {
               elevation: 15),
         ),
         */
+        bottomNavigationBar: Container(
+          decoration: BoxDecoration(
+            boxShadow: <BoxShadow>[
+              BoxShadow(
+                color: Color(0x8ca9a9a9),
+                blurRadius: 20,
+              ),
+            ],
+          ),
+          child: BottomNavigationBar(
+
+              currentIndex: _selectedIndex,
+              unselectedItemColor: Color(0xff8d8d8d),
+              unselectedLabelStyle: const TextStyle(
+                  color: Color(0xff8d8d8d), fontSize: 14),
+              unselectedFontSize: 14,
+              showUnselectedLabels: true,
+              showSelectedLabels: true,
+              selectedIconTheme: IconThemeData(
+                color: Color(0xff12283D),
+
+              ),
+              type: BottomNavigationBarType.shifting,
+              items: const <BottomNavigationBarItem>[
+                BottomNavigationBarItem(
+                    icon: Icon(FluentIcons.home_32_regular, size: 20,),
+                    label: 'Home',
+                    backgroundColor: Colors.white
+                ),
+                BottomNavigationBarItem(
+                    icon: Icon(FluentIcons.weather_sunny_16_regular, size: 20,),
+                    label: 'Complaint',
+                    backgroundColor: Colors.white
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(FluentIcons.inprivate_account_16_regular, size: 20,),
+                  label: 'Profile',
+                  backgroundColor: Colors.white,
+                ),
+              ],
+
+              selectedItemColor: Color(0xff12283D),
+              iconSize: 40,
+              onTap: _onItemTapped,
+              elevation: 15
+          ),
+        ),
       );
     });
   }

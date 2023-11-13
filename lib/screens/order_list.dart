@@ -1,19 +1,15 @@
 import 'dart:convert';
 
-import 'package:fl_chart/fl_chart.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hascol_dealer/screens/create_order.dart';
 import 'package:hascol_dealer/screens/home.dart';
-import 'package:hascol_dealer/screens/login.dart';
 import 'package:hascol_dealer/screens/profile.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
-import 'package:syncfusion_flutter_charts/charts.dart';
 
 class Orders extends StatefulWidget {
   static const Color contentColorOrange = Color(0xFF00705B);
@@ -31,6 +27,9 @@ class _OrdersState extends State<Orders> {
   }
 
   int _selectedIndex = 1;
+  String searchQuery = ''; // State to store the search query
+  List<Map<String, dynamic>> filteredData = []; // Filtered list based on search
+  List<Map<String, dynamic>> apiData = [];
 
   create() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -48,6 +47,17 @@ class _OrdersState extends State<Orders> {
       throw Exception('Failed to fetch data');
     }
   }
+  void filterData(String query) {
+    setState(() {
+      searchQuery = query;
+      if (query.isNotEmpty) {
+        filteredData = apiData.where((order) => order['id'].contains(query)).toList();
+      } else {
+        filteredData = List<Map<String, dynamic>>.from(apiData);
+      }
+    });
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -91,7 +101,7 @@ class _OrdersState extends State<Orders> {
                   size: 24.0,
                 ),
                 style: ElevatedButton.styleFrom(
-                  primary: Color(0xff3B8D5A), // Background color
+                  backgroundColor: Color(0xff3B8D5A), // Background color
                 ),
                 label: Text(
                   'Create Order',
@@ -126,13 +136,16 @@ class _OrdersState extends State<Orders> {
                     decoration: InputDecoration(
                         prefixIcon: Icon(FluentIcons.search_12_regular,
                             color: Color(0xff8d8d8d)),
-                        hintText: 'Search...',
+                        hintText: 'Search using Order Number',
                         hintStyle: GoogleFonts.montserrat(
                             fontWeight: FontWeight.w300,
                             fontStyle: FontStyle.normal,
                             color: Color(0xff12283D),
                             fontSize: 16),
                         border: InputBorder.none),
+                    onChanged: (value) {
+                      filterData(value);
+                    },
                   ),
                 ),
                 SizedBox(
@@ -149,10 +162,14 @@ class _OrdersState extends State<Orders> {
                       return Text('No data available.');
                     } else {
                       List<Map<String, dynamic>> apiData = snapshot.data!;
+                      filteredData = List<Map<String, dynamic>>.from(apiData); // Assign to filtered data initially
+                      if (searchQuery.isNotEmpty) {
+                        filteredData = apiData.where((order) => order['id'].contains(searchQuery)).toList();
+                      }
                       return ListView(
                         shrinkWrap: true,
                         physics: NeverScrollableScrollPhysics(),
-                        children: apiData.map((item) {
+                        children: filteredData.map((item) {
                           final orderNumber = item["id"];
                           final totalAmount = item['total_amount'];
                           final type = item['type'];
@@ -162,7 +179,6 @@ class _OrdersState extends State<Orders> {
                           print("Khan-----> $products");
                           int index = 0;
                           Color backgroundColor = Colors.white;
-
                           return GestureDetector(
                               onTap: () {
                                 showDialog(
@@ -219,7 +235,6 @@ class _OrdersState extends State<Orders> {
                                                         mainAxisAlignment: MainAxisAlignment.start,
                                                         children: [
                                                           Text("${products[i]['product_name']}"),
-
                                                         ],
                                                       ),
                                                       Column(
@@ -286,7 +301,7 @@ class _OrdersState extends State<Orders> {
                                           crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
                                             Text(
-                                              'Order Num # $orderNumber',
+                                              'Order#: $orderNumber',
                                               style: GoogleFonts.montserrat(
                                                 fontWeight: FontWeight.w600,
                                                 fontStyle: FontStyle.normal,
@@ -369,7 +384,7 @@ class _OrdersState extends State<Orders> {
                                                   ),
                                                 ),
                                                 style: ElevatedButton.styleFrom(
-                                                  primary: Color(0xff12283D),
+                                                  backgroundColor: Color(0xff12283D),
                                                   shape: RoundedRectangleBorder(
                                                     borderRadius: BorderRadius.circular(18.0),
                                                   ),
@@ -504,8 +519,6 @@ class _OrdersState extends State<Orders> {
                             ),
                           ),
                           );
-
-
                         }).toList(),
                       );
                     }
