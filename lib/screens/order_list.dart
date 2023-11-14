@@ -1,15 +1,24 @@
 import 'dart:convert';
+import 'dart:io';
+import 'dart:typed_data';
+import 'package:flutter/material.dart';
 
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hascol_dealer/screens/create_order.dart';
 import 'package:hascol_dealer/screens/home.dart';
 import 'package:hascol_dealer/screens/profile.dart';
+import 'package:pdf/pdf.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
+import 'package:pdf/widgets.dart' as pw;
+import 'package:flutter_pdfview/flutter_pdfview.dart';
+import 'package:path_provider/path_provider.dart';
+
+
 
 class Orders extends StatefulWidget {
   static const Color contentColorOrange = Color(0xFF00705B);
@@ -30,6 +39,97 @@ class _OrdersState extends State<Orders> {
   String searchQuery = ''; // State to store the search query
   List<Map<String, dynamic>> filteredData = []; // Filtered list based on search
   List<Map<String, dynamic>> apiData = [];
+
+  Future<void> createInvoice(BuildContext context, String orderNumber) async {
+    final List<Map<String, dynamic>>? data = await fetchData();
+
+    if (data != null && data.isNotEmpty) {
+      // Filter data based on the orderNumber
+      final List<Map<String, dynamic>> filteredData = data
+          .where((order) => order['id'].toString() == orderNumber)
+          .toList();
+
+      if (filteredData.isEmpty) {
+        // Handle the case where no data is found for the orderNumber
+        print('No data found for order number: $orderNumber');
+        return;
+      }
+
+      final pdf = pw.Document();
+
+      final Uint8List logoImage = (await rootBundle.load('assets/images/puma_logo.svg')).buffer.asUint8List();
+
+      // Generate PDF content
+      pdf.addPage(pw.Page(
+        build: (pw.Context context) {
+
+          final String orderID = filteredData[0]["id"]?.toString() ?? "";
+          final String totalAmount = filteredData[0]["total_amount"]?.toString() ?? "";
+          final String dateTime = filteredData[0]["created_at"] ?? "";
+          final String type = filteredData[0]["type"] ?? "";
+
+          return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.Header(
+                level: 1,
+                text: 'INVOICE',
+                textStyle:  pw.TextStyle(fontSize: 28),
+              ),
+              pw.SizedBox(height: 12),
+              pw.Text('Invoice#: $orderID', style: pw.TextStyle(fontSize: 16,),),
+              pw.Text('Total Amount: PKR. $totalAmount'),
+              pw.Text('Date and Time: $dateTime'),
+              pw.Text('Type: $type'),
+              pw.SizedBox(height: 20),
+              pw.Table.fromTextArray(
+                context: context,
+                data: <List<String>>[
+                  <String>['Product', 'Quantity', 'Indent Price', 'Amount'],
+                  // Assuming product details are in the "products" key in the data
+                  for (var product in json.decode(filteredData[0]['product_json']))
+                    if (product['quantity'] != null && product['quantity'] != '0')
+                      <String>[
+                        product['product_name'] ?? "", // Add null check
+                        product['quantity']?.toString() ?? "", // Add null check
+                        product['indent_price']?.toString() ?? "", // Add null check
+                        product['amount']?.toString() ?? "", // Add null check
+                      ],
+                ],
+                border: pw.TableBorder.all(color: PdfColor.fromHex('#FFFFFF')), // Remove border
+                headerDecoration: pw.BoxDecoration(
+                  color: PdfColor.fromHex('#CCCCCC'),
+                ),
+                cellStyle: pw.TextStyle(
+                  color: PdfColor.fromHex('#000000'), // Black color in cells
+                ),
+                cellAlignment: pw.Alignment.center,
+              ),
+            ],
+          );
+        },
+      ));
+
+      // Get the document bytes
+      final Uint8List pdfBytes = await pdf.save();
+
+      // Create a temporary file for the PDF
+      final tempDir = await getTemporaryDirectory();
+      final tempPath = tempDir.path;
+      final tempFile = File('$tempPath/invoice.pdf');
+      await tempFile.writeAsBytes(pdfBytes);
+
+      // Open the PDF
+      if (tempFile.existsSync()) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => PDFView(filePath: tempFile.path),
+          ),
+        );
+      }
+    }
+  }
 
   create() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -58,6 +158,16 @@ class _OrdersState extends State<Orders> {
     });
   }
 
+/*
+  Future<void> savePDFLocally(pw.Document pdf) async {
+    final bytes = await pdf.save();
+
+    final fileName = 'invoice.pdf';
+    final directory = await getApplicationDocumentsDirectory();
+    final file = File('${directory.path}/$fileName');
+    await file.writeAsBytes(bytes);
+  }
+*/
 
   @override
   Widget build(BuildContext context) {
@@ -498,7 +608,9 @@ class _OrdersState extends State<Orders> {
                                             ),
                                             TextButton.icon(
                                               // <-- TextButton
-                                              onPressed: () {},
+                                              onPressed: () {
+                                                createInvoice(context,orderNumber);
+                                              },
                                               icon: Icon(
                                                 FluentIcons.drawer_arrow_download_24_regular,
                                                 size: 16.0,
@@ -589,7 +701,6 @@ class _OrdersState extends State<Orders> {
       );
     });
   }
-
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
