@@ -25,9 +25,9 @@ class _CreateOrderState extends State<Create_Order> {
   List<int> product_values1 = [];
   List<TextEditingController> controllers = [];
   late List<int> selectedOptions;
-  late List<int> hsdtValues;
+  late List<double> hsdtValues;
   int? total;
-  int hsd = 0;
+  double hsd = 0;
   int hobc = 330;
   int pmg = 332;
   int hsdt = 0;
@@ -46,10 +46,10 @@ class _CreateOrderState extends State<Create_Order> {
   String? selectedsizeformId;
   String? selectedsizeformType;
   var _site = "Self";
-  int sum = 0;
+  double sum = 0.0;
   void updateSum() {
     sum = 0;
-    List<int> numbers = hsdtValues;
+    List<double> numbers = hsdtValues;
     sum = numbers.reduce((value, element) => value + element);
 
     print("Sum: $sum");
@@ -375,7 +375,7 @@ class _CreateOrderState extends State<Create_Order> {
                                     if (value.isNotEmpty) {
                                       setState(() {
                                         selectedOptions[index] = int.parse(value);
-                                        hsd = int.parse(value) * int.parse("${apiData[index]['indent_price']}");
+                                        hsd = int.parse(value) * double.parse("${apiData[index]['indent_price']}");
                                         hsdtValues[index] = hsd;
 
                                         print("Hellow brother $hsdtValues");
@@ -393,7 +393,7 @@ class _CreateOrderState extends State<Create_Order> {
                                         controllers[index] = value;
                                         print("my value2 $value");
                                         hsd = int.parse(value) *
-                                            int.parse(
+                                            double.parse(
                                                 "${apiData[index]['indent_price']}");
                                         hsdtValues[index] = hsd;
                                         print("Hellow brother $hsdtValues");

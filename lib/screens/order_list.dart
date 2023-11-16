@@ -585,7 +585,7 @@ class _OrdersState extends State<Orders> {
                                                     ),
                                                   ),
                                                 ),
-                                                Text(
+                                                /*Text(
                                                   'Waiting For Approval',
                                                   style: GoogleFonts.montserrat(
                                                     fontWeight: FontWeight.w300,
@@ -593,7 +593,7 @@ class _OrdersState extends State<Orders> {
                                                     color: Color(0xff9b9b9b),
                                                     fontSize: 12,
                                                   ),
-                                                ),
+                                                ),*/
                                                 SizedBox(
                                                   height: 3,
                                                 ),
