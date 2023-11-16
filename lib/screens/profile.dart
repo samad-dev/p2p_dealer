@@ -5,6 +5,7 @@ import 'package:hascol_dealer/screens/complaint_list.dart';
 import 'package:hascol_dealer/screens/home.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 import '../main.dart';
 
@@ -21,6 +22,15 @@ class _ProfileState extends State<Profile> {
   void initState() {
     super.initState();
   }
+
+  _launchURL(String url) async {
+    try {
+      await launchUrlString(url);
+    } catch (e) {
+      print("Error launching URL: $e");
+    }
+  }
+
 
   int _selectedIndex = 2;
   @override
@@ -60,17 +70,24 @@ class _ProfileState extends State<Profile> {
                       crossAxisAlignment: CrossAxisAlignment.center,
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
+
                         CircleAvatar(
-                            backgroundColor: Color(0xffB3DCF1),
+                            backgroundColor: Colors.white,
                             radius: 60,
-                            child: Icon(
-                              Icons.account_circle_outlined,
-                              color: Colors.white,
-                              size: 90,
-                            ) //Text
+                            child: Image.asset("assets/images/puma icon.png", width: 85, )
                         ),
+                        /*
+                        CircleAvatar(
+                            backgroundColor: Color(0xffea1b25),
+                            radius: 60,
+                            child: Opacity(
+                              opacity: 0.9,
+                                child: Image.asset("assets/images/puma png.png", width: 100)
+                            ),
+                        ),
+                        */
                         Text(
-                          'Sales Bridge',
+                          'Puma Order App',
                           style: GoogleFonts.poppins(
                             fontSize: 14,
                             color: Color(0xff000000),
@@ -95,70 +112,63 @@ class _ProfileState extends State<Profile> {
                         children: [
                           Padding(
                             padding: const EdgeInsets.all(8.0),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  FluentIcons.person_circle_20_regular,
-                                  size: 35,
-                                ),
-                                SizedBox(width: 5,),
-                                Text(
-                                  'Help & Support',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 14,
-                                    color: Color(0xff000000),
-                                    fontWeight: FontWeight.w600,
-                                    fontStyle: FontStyle.normal,
+                            child: GestureDetector(
+                              onTap: (){_launchURL('https://www.pumapakistan.com/en/contact');},
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    FluentIcons.contact_card_20_regular,
+                                    size: 35,
                                   ),
-                                ),
-                              ],
+                                  SizedBox(width: 5,),
+                                  Text(
+                                    'Contact us',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 14,
+                                      color: Color(0xff000000),
+                                      fontWeight: FontWeight.w600,
+                                      fontStyle: FontStyle.normal,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                           Padding(
                             padding: const EdgeInsets.all(8.0),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  FluentIcons.contact_card_20_regular,
-                                  size: 35,
-                                ),
-                                SizedBox(width: 5,),
-                                Text(
-                                  'Contact us',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 14,
-                                    color: Color(0xff000000),
-                                    fontWeight: FontWeight.w600,
-                                    fontStyle: FontStyle.normal,
+                            child: GestureDetector(
+                              onTap: (){
+                                _launchURL("https://www.pumapakistan.com/en/products-services/#polices");
+                              },
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    FluentIcons.lock_multiple_20_regular,
+                                    size: 35,
                                   ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  FluentIcons.lock_multiple_20_regular,
-                                  size: 35,
-                                ),
-                                SizedBox(width: 5,),
-                                Text(
-                                  'Privacy Policy',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 14,
-                                    color: Color(0xff000000),
-                                    fontWeight: FontWeight.w600,
-                                    fontStyle: FontStyle.normal,
+                                  SizedBox(width: 5,),
+                                  Text(
+                                    'Privacy Policy',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 14,
+                                      color: Color(0xff000000),
+                                      fontWeight: FontWeight.w600,
+                                      fontStyle: FontStyle.normal,
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           ),
                           GestureDetector(
-                            onTap: (){
-                              _logout();
+                            onTap: () async {
+                              SharedPreferences prefs = await SharedPreferences.getInstance();
+                              await prefs.clear();
+                              Navigator.pushAndRemoveUntil(
+                                context,
+                                MaterialPageRoute(builder: (context) => MyApp()),
+                                    (route) => false, // Remove all routes from the stack
+                              );
                             },
                             child: Padding(
                               padding: const EdgeInsets.all(8.0),
@@ -284,11 +294,7 @@ class _ProfileState extends State<Profile> {
   Future<void> _logout() async {
     final prefs = await SharedPreferences.getInstance();
     prefs.setBool('isLoggedIn', false); // Clear login status
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (BuildContext context) => SplashScreen(),
-      ),
+    Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => SplashScreen(),),
     );
   }
 }

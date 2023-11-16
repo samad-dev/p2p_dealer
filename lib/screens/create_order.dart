@@ -9,6 +9,8 @@ import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 import 'package:dropdown_plus/dropdown_plus.dart';
 
+import 'order_list.dart';
+
 class Create_Order extends StatefulWidget {
   static const Color contentColorOrange = Color(0xFF00705B);
   final Color leftBarColor = Color(0xFFCB6600);
@@ -97,7 +99,10 @@ class _CreateOrderState extends State<Create_Order> {
                 msg: 'Order Created Successfully',
                 backgroundColor: Colors.greenAccent,
                 textColor: Colors.black);
-            Navigator.pop(context);
+            Navigator.of(context).push(
+                MaterialPageRoute(
+                    builder: (context) =>
+                        Orders()));
           } else {
             Fluttertoast.showToast(
                 msg: 'Order Not Created',
@@ -141,7 +146,7 @@ class _CreateOrderState extends State<Create_Order> {
               backgroundColor: Colors.redAccent,
               textColor: Colors.white);
         }
-        print(await response.stream.bytesToString());
+        // print(await response.stream.bytesToString());
       }
       else {
         print(response.reasonPhrase);

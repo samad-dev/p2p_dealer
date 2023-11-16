@@ -226,7 +226,7 @@ class _UniformState extends State<Uniform> {
                                             .arrow_drop_down_circle_outlined),
                                         labelText: "Select uniform type",
                                       ),
-                                      dropdownHeight: 100,
+                                      dropdownHeight: 150,
                                       onChanged: (dynamic value) {
                                         setState(() {
                                           selectedUniformType =

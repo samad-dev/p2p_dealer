@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hascol_dealer/screens/home.dart';
@@ -7,7 +8,11 @@ import 'package:hascol_dealer/screens/login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:video_player/video_player.dart';
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setPreferredOrientations([
+  DeviceOrientation.portraitUp,]);
   runApp(MyApp());
+
 }
 
 class MyApp extends StatelessWidget {

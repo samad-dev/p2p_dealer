@@ -187,8 +187,10 @@ class _CreateOrderUniformState extends State<Create_Order_Uniform> {
   Future<String> getDepot() async {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     var user_id = await sharedPreferences.getString("userId");
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var id = prefs.getString("Id");
     var res = await http.get(Uri.parse(
-        "http://151.106.17.246:8080/hascol/api/dealer_depot.php?accesskey=12345&user_id=3"));
+        "http://151.106.17.246:8080/hascol/api/dealer_depot.php?accesskey=12345&user_id=$id"));
     var resBody = json.decode(res.body);
 
     setState(() {

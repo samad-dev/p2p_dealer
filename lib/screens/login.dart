@@ -63,7 +63,6 @@ class _LoginState extends State<Login> {
         prefs.setString("indent_price", jsons[0]["indent_price"].toString());
         prefs.setString("Nozel_price", jsons[0]["Nozel_price"].toString());
         prefs.setString("sap_no", jsons[0]["sap_no"].toString());
-        prefs.setString("account", jsons[0]["acount"].toString());
         Navigator.pushReplacement<void, void>(context,MaterialPageRoute<void>(builder: (BuildContext context) => Home(),),);
       } else {
         // Incorrect credentials
