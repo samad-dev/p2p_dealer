@@ -384,8 +384,7 @@ class _CreateOrderState extends State<Create_Order> {
                                       });
                                     } else {
                                       print("Enter value");
-                                    }
-                                    ;
+                                    };
                                   },
                                   onSaved: (dynamic value) {
                                     if (value.isNotempty) {

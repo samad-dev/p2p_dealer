@@ -1,9 +1,11 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/services.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hascol_dealer/screens/create_order.dart';
@@ -16,6 +18,8 @@ import 'package:http/http.dart' as http;
 import 'package:pdf/widgets.dart' as pw;
 import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path/path.dart';
 
 class Orders extends StatefulWidget {
   static const Color contentColorOrange = Color(0xFF00705B);
@@ -31,21 +35,112 @@ class _OrdersState extends State<Orders> {
     super.initState();
     fetchData();
   }
+  late List<int> quantity_input;
+  late List<double> quantity_less;
+  double hsd = 0;
+  TextEditingController imageNameController = TextEditingController();
+  GlobalKey<_OrdersState> globalKey = GlobalKey();
 
   List<Map<String, dynamic>> order_list = [];
 
+  File? selectedImage;
   int _selectedIndex = 1;
   String searchQuery = ''; // State to store the search query
   List<Map<String, dynamic>> filteredData = []; // Filtered list based on search
   List<Map<String, dynamic>> apiData = [];
 
+
+  post_send(order_ID) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var id = prefs.getString("Id");
+    var matchingOrder = order_list.firstWhere((order) => order['id'] == order_ID);
+
+    if (matchingOrder != null) {
+      // Order found, extract product JSON
+      var productJson = matchingOrder['product_json'];
+      // Decode the product_json
+      List<dynamic> decodedProductJson = json.decode(productJson);
+      // Create a list to store the new JSON structures
+      List<Map<String, dynamic>> newJsonList = [];
+      // Iterate over each index in the decoded list
+      for (int j = 0; j < decodedProductJson.length; j++) {
+        var product = decodedProductJson[j];
+        var p_id = product['p_id'];
+        var product_name = product['product_name'];
+        var quantity = product['quantity'];
+        // Create a new JSON structure
+        Map<String, dynamic> newJson = {
+          'p_id': p_id,
+          'product_name': product_name,
+          'quantity': quantity,
+          'quantity_rec': '${quantity_input[j]}',
+          'quantity_less': '${quantity_less[j]}',
+        };
+        // Add the new JSON structure to the list
+        newJsonList.add(newJson);
+      }
+      print("$newJsonList,,,,,,,$selectedImage");
+      var request = http.MultipartRequest('POST', Uri.parse('http://151.106.17.246:8080/OMCS-CMS-APIS/create/create_dealer_dip_shortage.php'));
+      request.fields.addAll({
+        'order_id': '$order_ID',
+        'dealer_id': '$id',
+        'row_id': '',
+        'product_json': '$newJsonList',
+      });
+
+      request.files.add(await http.MultipartFile.fromPath('file', selectedImage!.path));
+      http.StreamedResponse response = await request.send();
+
+        if (response.statusCode == 200) {
+          var ret = await response.stream.bytesToString();
+          if (ret == '1') {
+            Fluttertoast.showToast(
+                msg: 'Shortage Report Submitted',
+                backgroundColor: Colors.greenAccent,
+                textColor: Colors.black);
+            Navigator.of(context as BuildContext).push(MaterialPageRoute(builder: (context) => Orders()));
+            selectedImage = null;
+            imageNameController.clear();
+          } else {
+            Fluttertoast.showToast(
+                msg: 'Shortage Report Not Submitted',
+                backgroundColor: Colors.redAccent,
+                textColor: Colors.white);
+          }
+          print(ret);
+        } else {
+          print(response.reasonPhrase);
+        }
+    } else {
+      // Order not found
+      print('Order with ID $order_ID not found.');
+      return {};
+    }
+  }
+  Future<void> _pickImage(ImageSource source) async {
+    try {
+      final pickedFile = await ImagePicker().pickImage(source: source);
+
+      if (pickedFile != null) {
+        setState(() {
+          selectedImage = File(pickedFile.path);
+          imageNameController.text = selectedImage!
+              .path
+              .split('/')
+              .last;
+        });
+      }
+    } catch (e) {
+      print('Error picking image: $e');
+    }
+  }
   Future<void> createInvoice(BuildContext context, String orderNumber) async {
     final List<Map<String, dynamic>>? data = await fetchData();
 
     if (data != null && data.isNotEmpty) {
       // Filter data based on the orderNumber
       final List<Map<String, dynamic>> filteredData =
-          data.where((order) => order['id'].toString() == orderNumber).toList();
+      data.where((order) => order['id'].toString() == orderNumber).toList();
 
       if (filteredData.isEmpty) {
         // Handle the case where no data is found for the orderNumber
@@ -56,9 +151,9 @@ class _OrdersState extends State<Orders> {
       final pdf = pw.Document();
 
       final Uint8List logoImage =
-          (await rootBundle.load('assets/images/puma_logo.svg'))
-              .buffer
-              .asUint8List();
+      (await rootBundle.load('assets/images/puma_logo.svg'))
+          .buffer
+          .asUint8List();
 
       // Generate PDF content
       pdf.addPage(pw.Page(
@@ -94,7 +189,7 @@ class _OrdersState extends State<Orders> {
                   <String>['Product', 'Quantity', 'Indent Price', 'Amount'],
                   // Assuming product details are in the "products" key in the data
                   for (var product
-                      in json.decode(filteredData[0]['product_json']))
+                  in json.decode(filteredData[0]['product_json']))
                     if (product['quantity'] != null &&
                         product['quantity'] != '0')
                       <String>[
@@ -140,12 +235,10 @@ class _OrdersState extends State<Orders> {
       }
     }
   }
-
   create() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     var id = prefs.getString("Id");
   }
-
   Future<List<Map<String, dynamic>>?> fetchData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     var id = prefs.getString("Id");
@@ -161,12 +254,12 @@ class _OrdersState extends State<Orders> {
 
 
       print('Samad:${order_list.length}');
+      print('Samad:${order_list.length}');
       return List<Map<String, dynamic>>.from(data);
     } else {
       throw Exception('Failed to fetch data');
     }
   }
-
   void filterData(String query) {
     setState(() {
       searchQuery = query;
@@ -178,17 +271,6 @@ class _OrdersState extends State<Orders> {
       }
     });
   }
-
-/*
-  Future<void> savePDFLocally(pw.Document pdf) async {
-    final bytes = await pdf.save();
-
-    final fileName = 'invoice.pdf';
-    final directory = await getApplicationDocumentsDirectory();
-    final file = File('${directory.path}/$fileName');
-    await file.writeAsBytes(bytes);
-  }
-*/
 
   @override
   Widget build(BuildContext context) {
@@ -295,13 +377,12 @@ class _OrdersState extends State<Orders> {
                 ),
                 SingleChildScrollView(
                   physics: ScrollPhysics(),
-
                   child: Column(
                     children: [
                       ListView.builder(
                           physics: NeverScrollableScrollPhysics(),
-                        scrollDirection: Axis.vertical,
-                        shrinkWrap: true,
+                          scrollDirection: Axis.vertical,
+                          shrinkWrap: true,
                           itemCount: filteredData.length,
                           itemBuilder: (BuildContext context, int index2) {
                             List<Map<String, dynamic>> apiData = order_list;
@@ -309,16 +390,18 @@ class _OrdersState extends State<Orders> {
                             //     apiData); // Assign to filtered data initially
                             if (searchQuery.isNotEmpty) {
                               filteredData = order_list
-                                  .where((order) => order['id'].contains(searchQuery))
+                                  .where((order) =>
+                                      order['id'].contains(searchQuery))
                                   .toList();
-                            }
-                            else {
-                              filteredData =order_list;
+                            } else {
+                              filteredData = order_list;
                             }
                             final orderNumber = filteredData[index2]["id"];
-                            final totalAmount = filteredData[index2]['total_amount'];
+                            final totalAmount =
+                                filteredData[index2]['total_amount'];
                             final type = filteredData[index2]['type'];
-                            final created_at = filteredData[index2]['created_at'];
+                            final created_at =
+                                filteredData[index2]['created_at'];
                             final productJsonString =
                                 filteredData[index2]["product_json"];
                             final status = filteredData[index2]["status"];
@@ -350,14 +433,18 @@ class _OrdersState extends State<Orders> {
                                       return AlertDialog(
                                         title: Text("Order Detail"),
                                         content: Container(
-                                          width: MediaQuery.of(context).size.width,
-                                          height:
-                                              MediaQuery.of(context).size.height / 4,
+                                          width:
+                                              MediaQuery.of(context).size.width,
+                                          height: MediaQuery.of(context)
+                                                  .size
+                                                  .height /
+                                              4,
                                           child: Column(
                                             children: [
                                               Row(
                                                 mainAxisAlignment:
-                                                    MainAxisAlignment.spaceBetween,
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
                                                 children: [
                                                   Row(
                                                     children: [
@@ -365,7 +452,8 @@ class _OrdersState extends State<Orders> {
                                                       Text(
                                                         '$orderNumber',
                                                         style: TextStyle(
-                                                          fontWeight: FontWeight.bold,
+                                                          fontWeight:
+                                                              FontWeight.bold,
                                                         ),
                                                       ),
                                                     ],
@@ -376,7 +464,8 @@ class _OrdersState extends State<Orders> {
                                                       Text(
                                                         '$type',
                                                         style: TextStyle(
-                                                          fontWeight: FontWeight.bold,
+                                                          fontWeight:
+                                                              FontWeight.bold,
                                                         ),
                                                       ),
                                                     ],
@@ -388,30 +477,35 @@ class _OrdersState extends State<Orders> {
                                               ),
                                               Row(
                                                 mainAxisAlignment:
-                                                    MainAxisAlignment.spaceBetween,
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
                                                 children: [
                                                   Text(
                                                     "Product",
                                                     style: TextStyle(
-                                                      fontWeight: FontWeight.bold,
+                                                      fontWeight:
+                                                          FontWeight.bold,
                                                     ),
                                                   ),
                                                   Text(
                                                     "Quantity",
                                                     style: TextStyle(
-                                                      fontWeight: FontWeight.bold,
+                                                      fontWeight:
+                                                          FontWeight.bold,
                                                     ),
                                                   ),
                                                   Text(
                                                     "Indent Price",
                                                     style: TextStyle(
-                                                      fontWeight: FontWeight.bold,
+                                                      fontWeight:
+                                                          FontWeight.bold,
                                                     ),
                                                   ),
                                                   Text(
                                                     "Amount",
                                                     style: TextStyle(
-                                                      fontWeight: FontWeight.bold,
+                                                      fontWeight:
+                                                          FontWeight.bold,
                                                     ),
                                                   ),
                                                 ],
@@ -419,11 +513,8 @@ class _OrdersState extends State<Orders> {
                                               SizedBox(
                                                 height: 10,
                                               ),
-                                              for (var i = 0;
-                                                  i < products.length;
-                                                  i++)
-                                                if (products[i]['quantity'] != null &&
-                                                    products[i]['quantity'] != '0')
+                                              for (var i = 0; i < products.length; i++)
+                                                if (products[i]['quantity'] != null && products[i]['quantity'] != '0')
                                                   Container(
                                                     color: backgroundColor =
                                                         i % 2 == 0
@@ -434,11 +525,13 @@ class _OrdersState extends State<Orders> {
                                                           MainAxisAlignment
                                                               .spaceAround,
                                                       crossAxisAlignment:
-                                                          CrossAxisAlignment.start,
+                                                          CrossAxisAlignment
+                                                              .start,
                                                       children: [
                                                         Column(
                                                           mainAxisAlignment:
-                                                              MainAxisAlignment.start,
+                                                              MainAxisAlignment
+                                                                  .start,
                                                           children: [
                                                             Text(
                                                                 "${products[i]['product_name']}"),
@@ -488,7 +581,8 @@ class _OrdersState extends State<Orders> {
                                                   Text(
                                                     '$totalAmount Rs.',
                                                     style: TextStyle(
-                                                      fontWeight: FontWeight.bold,
+                                                      fontWeight:
+                                                          FontWeight.bold,
                                                     ),
                                                   )
                                                 ],
@@ -534,15 +628,6 @@ class _OrdersState extends State<Orders> {
                                                   ),
                                                 ),
                                                 Text(
-                                                  'Quantity: 23000 Ltr.',
-                                                  style: GoogleFonts.montserrat(
-                                                    fontWeight: FontWeight.w200,
-                                                    fontStyle: FontStyle.normal,
-                                                    color: Color(0xff737373),
-                                                    fontSize: 12,
-                                                  ),
-                                                ),
-                                                Text(
                                                   'PKR. $totalAmount',
                                                   style: GoogleFonts.montserrat(
                                                     fontWeight: FontWeight.w600,
@@ -573,12 +658,16 @@ class _OrdersState extends State<Orders> {
                                                   color: Color(c1),
                                                   child: Padding(
                                                     padding:
-                                                        const EdgeInsets.all(3.0),
+                                                        const EdgeInsets.all(
+                                                            3.0),
                                                     child: Text(
                                                       '$current_status',
-                                                      style: GoogleFonts.poppins(
-                                                        fontWeight: FontWeight.w500,
-                                                        fontStyle: FontStyle.normal,
+                                                      style:
+                                                          GoogleFonts.poppins(
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                        fontStyle:
+                                                            FontStyle.normal,
                                                         color: Colors.white,
                                                         fontSize: 12,
                                                       ),
@@ -604,188 +693,303 @@ class _OrdersState extends State<Orders> {
                                                       ? ElevatedButton(
                                                           child: Text(
                                                             'Shortage',
-                                                            style:
-                                                                GoogleFonts.poppins(
+                                                            style: GoogleFonts
+                                                                .poppins(
                                                               fontWeight:
-                                                                  FontWeight.w100,
+                                                                  FontWeight
+                                                                      .w100,
                                                               fontSize: 11,
                                                               fontStyle:
-                                                                  FontStyle.normal,
+                                                                  FontStyle
+                                                                      .normal,
                                                             ),
                                                           ),
                                                           style: ElevatedButton
                                                               .styleFrom(
                                                             backgroundColor:
-                                                                Color(0xff12283D),
+                                                                Color(
+                                                                    0xff12283D),
                                                             shape:
                                                                 RoundedRectangleBorder(
                                                               borderRadius:
                                                                   BorderRadius
-                                                                      .circular(18.0),
+                                                                      .circular(
+                                                                          18.0),
                                                             ),
                                                           ),
                                                           onPressed: () {
+                                                            quantity_input = List<int>.filled(products.length,0);
+                                                            quantity_less = List<double>.filled(products.length,0);
+                                                            imageNameController.clear();
+                                                            selectedImage = null; // Reset selectedImage
                                                             showModalBottomSheet(
                                                               context: context,
+                                                              isScrollControlled: true,
+
+                                                              shape: RoundedRectangleBorder(
+                                                                borderRadius: BorderRadius.vertical(top: Radius.circular(25.0)),
+                                                              ),
                                                               builder: (context) {
-                                                                return Container(
-                                                                  color:
-                                                                      Colors.white54,
-                                                                  child: Column(
-                                                                    children: [
-                                                                      SizedBox(
-                                                                          height: 30),
-                                                                      Icon(
-                                                                        FontAwesomeIcons
-                                                                            .cameraRetro,
-                                                                        color: Color(
-                                                                            0xff12283d),
-                                                                        size: 160,
-                                                                      ),
-                                                                      Text(
-                                                                        'Click Here To Upload Photos',
-                                                                        style: GoogleFonts
-                                                                            .poppins(
-                                                                          fontWeight:
-                                                                              FontWeight
-                                                                                  .w500,
-                                                                          fontSize:
-                                                                              16,
-                                                                          fontStyle:
-                                                                              FontStyle
-                                                                                  .normal,
-                                                                        ),
-                                                                      ),
-                                                                      Padding(
-                                                                        padding:
-                                                                            const EdgeInsets
-                                                                                .all(
-                                                                                18.0),
-                                                                        child:
-                                                                            SizedBox(
-                                                                          height: 50,
-                                                                          child:
-                                                                              TextFormField(
-                                                                            onFieldSubmitted:
-                                                                                (value) {
-                                                                              print(
-                                                                                  value);
+                                                                return StatefulBuilder(builder: (context, setState){
+                                                                  return SingleChildScrollView(
+                                                                    padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+                                                                    child: Padding(padding: const EdgeInsets.all(16.0),
+                                                                      child: Column(
+                                                                        children: [
+                                                                          Text('Shortage', style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),),
+                                                                          for(var i=0; i<products.length; i++)
+                                                                            if (products[i]['quantity'] != null && products[i]['quantity'] != '0')
+                                                                              Padding(padding: const EdgeInsets.all(8.0),
+                                                                                  child:Row(
+                                                                                    children: [
+                                                                                      Expanded(
+                                                                                        child: Container(
+                                                                                          padding: EdgeInsets.symmetric(horizontal: 16),
+                                                                                          child: TextField(
+                                                                                            keyboardType: TextInputType.number,
+                                                                                            decoration: InputDecoration(
+                                                                                              hintText: "Enter Received Quantity ",
+                                                                                              labelText: products[i]["product_name"],
+                                                                                              border: OutlineInputBorder(
+                                                                                                borderRadius: BorderRadius.circular(18.0),
+                                                                                              ),
+                                                                                            ),
+                                                                                            maxLines: 1, // Limit the number of lines
+                                                                                            onChanged: (dynamic value) {
+                                                                                              if (value.isNotEmpty) {
+                                                                                                setState(() {
+                                                                                                  quantity_input[i] = int.parse(value);
+                                                                                                  print('${products[i]['quantity']}');
+                                                                                                  hsd = double.parse("${products[i]['quantity']}")-int.parse(value);
+                                                                                                  quantity_less[i] = hsd;
+
+                                                                                                  print("Hellow brother1 $quantity_input");
+                                                                                                  print("Hellow brother1 $quantity_less");
+                                                                                                });
+                                                                                              } else {
+                                                                                                print("Enter value");
+                                                                                              };
+                                                                                            },
+                                                                                            onSubmitted: (dynamic value) {
+                                                                                              if (value.isNotEmpty) {
+                                                                                                setState(() {
+                                                                                                  quantity_input[i] = int.parse(value);
+                                                                                                  print('${products[i]['quantity']}');
+                                                                                                  hsd = double.parse("${products[i]['quantity']}")-int.parse(value);
+                                                                                                  quantity_less[i] = hsd;
+
+                                                                                                  print("Hellow brother1 $quantity_input");
+                                                                                                  print("Hellow brother1 $quantity_less");
+                                                                                                });
+                                                                                              } else {
+                                                                                                print("Enter value");
+                                                                                              };
+                                                                                            },
+                                                                                          ),
+                                                                                        ),
+                                                                                      ),
+                                                                                      Expanded(
+                                                                                          child: Row(
+                                                                                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                                                                            children: [
+                                                                                              Text(
+                                                                                                " - ",
+                                                                                                style: TextStyle(
+                                                                                                  fontSize: 16.0,),),
+                                                                                              Text(
+                                                                                                  products[i]["quantity"],
+                                                                                                  style: TextStyle(
+                                                                                                    fontSize: 16.0,)),
+                                                                                              Text(
+                                                                                                  " = ",
+                                                                                                  style: TextStyle(
+                                                                                                    fontSize: 16.0,)),
+                                                                                              Text(
+                                                                                                  quantity_less[i].toString(),
+                                                                                                  style: TextStyle(
+                                                                                                    fontSize: 16.0,))
+                                                                                            ],
+                                                                                          )
+                                                                                      ),
+                                                                                    ],
+                                                                                  )
+                                                                              ),
+
+
+                                                                          /*
+                                                                            for (var i = 0; i < products.length; i++)
+                                                                              if (products[i]['quantity'] != null && products[i]['quantity'] != '0') {
+                                                                                return Padding(
+                                                                                  padding: const EdgeInsets
+                                                                                      .all(
+                                                                                      8.0),
+                                                                                  child: Row(
+                                                                                    children: [
+                                                                                      Expanded(
+                                                                                        child: Container(
+                                                                                          padding: EdgeInsets
+                                                                                              .symmetric(
+                                                                                              horizontal: 16),
+                                                                                          child: TextField(
+                                                                                            keyboardType: TextInputType
+                                                                                                .number,
+                                                                                            decoration: InputDecoration(
+                                                                                              hintText: "Enter Received Quantity ",
+                                                                                              labelText: products[index]["product_name"],
+                                                                                              border: OutlineInputBorder(
+                                                                                                borderRadius: BorderRadius
+                                                                                                    .circular(
+                                                                                                    18.0),
+                                                                                              ),
+                                                                                            ),
+                                                                                            maxLines: 1, // Limit the number of lines
+                                                                                          ),
+                                                                                        ),
+                                                                                      ),
+                                                                                      Expanded(
+                                                                                          child: Row(
+                                                                                            mainAxisAlignment: MainAxisAlignment
+                                                                                                .spaceEvenly,
+                                                                                            children: [
+                                                                                              Text(
+                                                                                                " - ",
+                                                                                                style: TextStyle(
+                                                                                                  fontSize: 16.0,),),
+                                                                                              Text(
+                                                                                                  products[index]["quantity"],
+                                                                                                  style: TextStyle(
+                                                                                                    fontSize: 16.0,)),
+                                                                                              Text(
+                                                                                                  " = ",
+                                                                                                  style: TextStyle(
+                                                                                                    fontSize: 16.0,)),
+                                                                                              Text(
+                                                                                                  " Quantity ",
+                                                                                                  style: TextStyle(
+                                                                                                    fontSize: 16.0,))
+                                                                                            ],
+                                                                                          )),
+                                                                                    ],
+                                                                                  ),
+                                                                                );
+                                                                              }
+                                                                            */
+                                                                          Padding(
+                                                                            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                                                                            child: Container(
+                                                                              decoration: BoxDecoration(
+                                                                                border: Border.all(color: Colors.grey), // Border color
+                                                                                borderRadius: BorderRadius.circular(20.0), // Border radius
+                                                                              ),
+                                                                              child: Row(
+                                                                                children: [
+                                                                                  Expanded(
+                                                                                    child: Padding(
+                                                                                      padding: const EdgeInsets.all(8.0),
+                                                                                      child: Text(imageNameController.text, maxLines: 1,),
+                                                                                    ),
+                                                                                  ),
+                                                                                  SizedBox(
+                                                                                    height: 40,
+                                                                                    child: ElevatedButton(
+                                                                                      onPressed: () {
+                                                                                        // Show an alert dialog to choose the image source
+                                                                                        showDialog(
+                                                                                          context: context,
+                                                                                          builder: (BuildContext context) {
+                                                                                            return AlertDialog(
+                                                                                              title: Center(child: Text('Choose an option')),
+                                                                                              actions: <Widget>[
+                                                                                                Padding(
+                                                                                                  padding: EdgeInsets.symmetric(horizontal: 70),
+                                                                                                  child: Row(
+                                                                                                    children: [
+                                                                                                      TextButton(
+                                                                                                        onPressed: () async {
+                                                                                                          Navigator.of(context).pop();
+                                                                                                          _pickImage(ImageSource.camera);
+                                                                                                        },
+                                                                                                        child: Icon(Icons.camera_alt_outlined, size: 35, color: Color(0xffea1b25),), // Add gallery icon
+                                                                                                      ),
+                                                                                                      SizedBox(
+                                                                                                        width: 10,
+                                                                                                      ),
+                                                                                                      TextButton(
+                                                                                                        onPressed: () async {
+                                                                                                          Navigator.of(context).pop();
+                                                                                                          FilePickerResult? result = await FilePicker.platform.pickFiles(
+                                                                                                            allowMultiple: false,
+                                                                                                            type: FileType.image,
+                                                                                                          );
+                                                                                                          if (result != null && result.files.isNotEmpty) {
+                                                                                                            setState(() {
+                                                                                                              selectedImage = File(result.files.first.path!);
+                                                                                                              imageNameController.text = selectedImage!
+                                                                                                                  .path
+                                                                                                                  .split('/')
+                                                                                                                  .last;
+                                                                                                            });
+                                                                                                          }
+                                                                                                        },
+                                                                                                        child: Icon(Icons.image_outlined, size: 35, color: Color(0xffea1b25),),
+                                                                                                      ),
+                                                                                                    ],
+                                                                                                  ),
+                                                                                                ),
+                                                                                              ],
+                                                                                            );
+                                                                                          },
+                                                                                        );
+                                                                                      },
+                                                                                      style: ElevatedButton.styleFrom(
+                                                                                        shape: RoundedRectangleBorder(
+                                                                                          borderRadius: BorderRadius.only(
+                                                                                            topRight: Radius.circular(20.0), // Round only the top-right corner
+                                                                                            bottomRight: Radius.circular(20.0),
+                                                                                          ),
+                                                                                        ),
+                                                                                        backgroundColor: Color(0xffea1b25),
+                                                                                      ),
+                                                                                      child: Text('Pick Image',style: TextStyle(fontSize: 16.0,),),
+                                                                                    ),
+                                                                                  ),
+                                                                                ],
+                                                                              ),
+                                                                            ),
+                                                                          ),
+                                                                            if(selectedImage != null)
+                                                                              Container(
+                                                                                margin: EdgeInsets.all(16.0),
+                                                                                child: Image.file(selectedImage!,
+                                                                                  width: 200.0,
+                                                                                  height: 200.0,
+                                                                                  fit: BoxFit.fill,
+                                                                                  key: globalKey,
+                                                                                ),
+                                                                              ),
+                                                                          ElevatedButton(
+                                                                            onPressed:
+                                                                                () {
+                                                                                  post_send(orderNumber);
+                                                                                  setState(() {
+                                                                                    quantity_input = List<int>.filled(products.length, 0);
+                                                                                    quantity_less = List<double>.filled(products.length, 0);
+                                                                                    imageNameController.clear();
+                                                                                  });
+                                                                                  Navigator.pop(context); // Close the bottom sheet
                                                                             },
-                                                                            keyboardType:
-                                                                                TextInputType
-                                                                                    .number,
-                                                                            style: GoogleFonts
-                                                                                .poppins(
-                                                                              color: Color(
-                                                                                  0xffa8a8a8),
-                                                                              fontWeight:
-                                                                                  FontWeight.w300,
-                                                                              fontSize:
-                                                                                  16,
-                                                                              fontStyle:
-                                                                                  FontStyle.normal,
+                                                                            style: ElevatedButton.styleFrom(
+                                                                              backgroundColor: Color(0xffea1b25),
                                                                             ),
-                                                                            decoration:
-                                                                                InputDecoration(
-                                                                              hintStyle:
-                                                                                  GoogleFonts.poppins(
-                                                                                color:
-                                                                                    Color(0xffa8a8a8),
-                                                                                fontWeight:
-                                                                                    FontWeight.w300,
-                                                                                fontSize:
-                                                                                    16,
-                                                                                fontStyle:
-                                                                                    FontStyle.normal,
-                                                                              ),
-                                                                              labelStyle:
-                                                                                  GoogleFonts.poppins(
-                                                                                color:
-                                                                                    Color(0xffa8a8a8),
-                                                                                fontWeight:
-                                                                                    FontWeight.w300,
-                                                                                fontSize:
-                                                                                    16,
-                                                                                fontStyle:
-                                                                                    FontStyle.normal,
-                                                                              ),
-                                                                              filled:
-                                                                                  true,
-                                                                              fillColor:
-                                                                                  Color(0xffF1F4FF),
-                                                                              hintText:
-                                                                                  'Received',
-                                                                              focusedBorder:
-                                                                                  OutlineInputBorder(
-                                                                                borderSide:
-                                                                                    BorderSide(
-                                                                                  width:
-                                                                                      2,
-                                                                                  color:
-                                                                                      Color(0xff3b5fe0),
-                                                                                ),
-                                                                                borderRadius:
-                                                                                    BorderRadius.all(Radius.circular(10)),
-                                                                              ),
-                                                                              border:
-                                                                                  OutlineInputBorder(
-                                                                                borderSide:
-                                                                                    BorderSide(
-                                                                                  width:
-                                                                                      2,
-                                                                                  color:
-                                                                                      Color(0xffF1F4FF),
-                                                                                ),
-                                                                                borderRadius:
-                                                                                    BorderRadius.all(Radius.circular(10)),
-                                                                              ),
-                                                                              labelText:
-                                                                                  'Received Qty',
-                                                                            ),
+                                                                            child: Text(
+                                                                                'Submit'),
                                                                           ),
-                                                                        ),
+                                                                        ],
                                                                       ),
-                                                                      Padding(
-                                                                        padding:
-                                                                            EdgeInsets
-                                                                                .only(
-                                                                                    top: 20),
-                                                                        child:
-                                                                            MaterialButton(
-                                                                          onPressed:
-                                                                              () {},
-                                                                          child: Text(
-                                                                            'Add Shortage',
-                                                                            style:
-                                                                                TextStyle(
-                                                                              fontSize:
-                                                                                  15,
-                                                                              fontFamily:
-                                                                                  'SFUIDisplay',
-                                                                              fontWeight:
-                                                                                  FontWeight.bold,
-                                                                              color: Colors
-                                                                                  .white,
-                                                                            ),
-                                                                          ),
-                                                                          color: Color(
-                                                                              0xff12283d),
-                                                                          elevation:
-                                                                              0,
-                                                                          minWidth:
-                                                                              350,
-                                                                          height: 60,
-                                                                          shape:
-                                                                              RoundedRectangleBorder(
-                                                                            borderRadius:
-                                                                                BorderRadius.circular(
-                                                                                    10),
-                                                                          ),
-                                                                        ),
-                                                                      ),
-                                                                    ],
-                                                                  ),
-                                                                );
+                                                                    ),
+                                                                  );
+                                                                });
+
                                                               },
                                                             );
                                                           },
@@ -806,9 +1010,12 @@ class _OrdersState extends State<Orders> {
                                                   ),
                                                   label: Text(
                                                     'Invoice',
-                                                    style: GoogleFonts.montserrat(
-                                                      fontWeight: FontWeight.w300,
-                                                      fontStyle: FontStyle.normal,
+                                                    style:
+                                                        GoogleFonts.montserrat(
+                                                      fontWeight:
+                                                          FontWeight.w300,
+                                                      fontStyle:
+                                                          FontStyle.normal,
                                                       color: Color(0xff12283D),
                                                       fontSize: 12,
                                                     ),
@@ -1279,7 +1486,7 @@ class _OrdersState extends State<Orders> {
     });
   }
 
-  void _onItemTapped(int index) {
+  void _onItemTapped(int index,BuildContext context) {
     setState(() {
       _selectedIndex = index;
     });
