@@ -11,6 +11,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 
+import '../utils/constants.dart';
+
 class Lubricant extends StatefulWidget {
   static const Color contentColorOrange = Color(0xFF00705B);
   final Color leftBarColor = Color(0xFFCB6600);
@@ -303,11 +305,12 @@ class _LubricantState extends State<Lubricant> {
                                               fontWeight: FontWeight.w700,
                                               fontStyle: FontStyle.normal,
                                               fontSize: 16,
+                                              color: Colors.white
                                             ),
                                           ),
                                         ),
                                         style: ElevatedButton.styleFrom(
-                                          backgroundColor: Color(0xffe81329),
+                                          backgroundColor: Constants.primary_color,
                                         ),
                                         onPressed: sendOrderDataToAPI,
                                       ),
@@ -326,9 +329,10 @@ class _LubricantState extends State<Lubricant> {
                   // <-- Icon
                   Icons.add,
                   size: 24.0,
+                  color: Colors.white,
                 ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xff3B8D5A), // Background color
+                  backgroundColor: Constants.primary_color, // Background color
                 ),
                 label: Text(
                   'Lubricant Order',

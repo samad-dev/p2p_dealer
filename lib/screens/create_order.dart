@@ -9,6 +9,7 @@ import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 import 'package:dropdown_plus/dropdown_plus.dart';
 
+import '../utils/constants.dart';
 import 'order_list.dart';
 
 class Create_Order extends StatefulWidget {
@@ -987,7 +988,7 @@ class _CreateOrderState extends State<Create_Order> {
                       fontWeight: FontWeight.bold,
                       color: Colors.white),
                 ),
-                color: Color(0xff12283d),
+                color: Constants.primary_color,
                 elevation: 0,
                 minWidth: 350,
                 height: 60,

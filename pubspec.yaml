@@ -56,6 +56,7 @@ dependencies:
   url_launcher: 6.2.1
   image_picker: ^1.0.4
   file_picker: ^6.1.1
+  change_app_package_name: ^1.1.0
 
 
 
@@ -88,22 +89,7 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
-    - assets/images/puma_video.mp4
-    - assets/images/puma_logo.svg
-    - assets/images/puma_logo2.svg
-    - assets/images/engine-oil (1).png
-    - assets/images/cargo.png
-    - assets/images/completed-task.png
-    - assets/images/coverall.png
-    - assets/images/gps (1).png
-    - assets/images/gas-station.png
-    - assets/images/shirt.png
-    - assets/images/complain.png
-    - assets/images/engine-oil (3).png
-    - assets/images/cargo (1).png
-    - assets/images/shirt1.png
-    - assets/images/puma png.png
-    - assets/images/puma icon.png
+    - assets/images/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

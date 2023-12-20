@@ -11,6 +11,8 @@ import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 import 'package:fluttertoast/fluttertoast.dart';
 
+import '../utils/constants.dart';
+
 class Uniform extends StatefulWidget {
   static const Color contentColorOrange = Color(0xFF00705B);
   final Color leftBarColor = Color(0xFFCB6600);
@@ -326,11 +328,12 @@ class _UniformState extends State<Uniform> {
                                                     fontWeight: FontWeight.w700,
                                                     fontStyle: FontStyle.normal,
                                                     fontSize: 16,
+                                                    color: Colors.white
                                                   ),
                                                 ),
                                               ),
                                               style: ElevatedButton.styleFrom(
-                                                backgroundColor: Color(0xffe81329),
+                                                backgroundColor: Constants.primary_color,
                                               ),
                                               onPressed: sendOrderDataToAPI,
                                             ),
@@ -352,9 +355,10 @@ class _UniformState extends State<Uniform> {
                   // <-- Icon
                   Icons.add,
                   size: 24.0,
+                  color: Colors.white,
                 ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xff3B8D5A), // Background color
+                  backgroundColor: Constants.primary_color, // Background color
                 ),
                 label: Text(
                   'Uniform Order',

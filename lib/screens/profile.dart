@@ -74,7 +74,7 @@ class _ProfileState extends State<Profile> {
                         CircleAvatar(
                             backgroundColor: Colors.white,
                             radius: 60,
-                            child: Image.asset("assets/images/puma icon.png", width: 85, )
+                            child: Image.asset("assets/images/P2P Track Logo3.png", width: 180, )
                         ),
                         /*
                         CircleAvatar(
@@ -87,7 +87,7 @@ class _ProfileState extends State<Profile> {
                         ),
                         */
                         Text(
-                          'Puma Order App',
+                          'P2P Order App',
                           style: GoogleFonts.poppins(
                             fontSize: 14,
                             color: Color(0xff000000),

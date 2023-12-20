@@ -16,6 +16,8 @@ import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
+import '../utils/constants.dart';
+
 class Home extends StatefulWidget {
   static const Color contentColorOrange = Color(0xFF00705B);
   final Color leftBarColor = Color(0xFFCB6600);
@@ -191,12 +193,24 @@ class _HomeScreenState extends State<Home> {
     DateTime now = DateTime.now();
     String formattedDate = DateFormat('EEE d MMM kk:mm:ss').format(now);
     return Scaffold(
-      backgroundColor: Color(0xffea1b25),
+      backgroundColor: Constants.primary_color,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        title: Container(
+          width: MediaQuery.of(context).size.width,
+          height: 50,
+          color: Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child:
+            Image.asset('assets/images/P2P Track Logo1.png'),
+          ),
+        ),
+      ),
       body: RefreshIndicator(
         onRefresh: () async {
           loadDataFromSharedPreferences();
           data = fetchData();
-
         },
         child: Padding(
           padding: const EdgeInsets.only(
@@ -207,26 +221,28 @@ class _HomeScreenState extends State<Home> {
               ClipRect(
                 child: Stack(children: [
                   Opacity(
-                    opacity: 0.5,
+                    opacity: 0,
                     child: Image.asset("assets/images/puma png.png"),
                   ),
                   Container(
                     child: Column(
                       children: [
+                        /*
                         Container(
                           width: MediaQuery.of(context).size.width,
                           height: 50,
-                          color: Color(0xffea1b25),
+                          color: Colors.white,
                           child: Padding(
                             padding: const EdgeInsets.all(8.0),
                             child:
-                                SvgPicture.asset('assets/images/puma_logo.svg'),
+                                Image.asset('assets/images/P2P Track Logo1.png'),
                           ),
                         ),
+
                         Container(
                             width: MediaQuery.of(context).size.width,
                             height: 100,
-                            color: Color(0xff3a833c),
+                            color: Constants.primary_color,
                             padding: EdgeInsets.all(10.0),
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -254,13 +270,45 @@ class _HomeScreenState extends State<Home> {
                                   maxLines: 1,
                                 ),
                               ],
-                            )),
+                            )
+                        ),
+                        */
                         Container(
                             width: MediaQuery.of(context).size.width,
-                            color: Color(0xffea1b25),
+                            color: Constants.primary_color,
                             padding: EdgeInsets.all(10.0),
                             child: Column(
                               children: [
+                                Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      '$dealershipName',
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 16,
+                                        color: Color(0xffffffff),
+                                        fontWeight: FontWeight.w500,
+                                        fontStyle: FontStyle.normal,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 1,
+                                    ),
+                                    Text(
+                                      '$sap_no',
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 16,
+                                        color: Color(0xffffffff),
+                                        fontWeight: FontWeight.w500,
+                                        fontStyle: FontStyle.normal,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 1,
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(
+                                  height: 15,
+                                ),
                                 Text(
                                   'Current Balance',
                                   style: GoogleFonts.poppins(
@@ -289,10 +337,134 @@ class _HomeScreenState extends State<Home> {
                                     fontWeight: FontWeight.w300,
                                   ),
                                 ),
+                                SizedBox(
+                                  height: 30,
+                                ),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment
+                                      .center, // Adjust alignment as needed
+                                  children: <Widget>[
+                                    Padding(
+                                      padding:
+                                      const EdgeInsets.symmetric(horizontal: 5.0),
+                                      child: Column(
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.all(4.0),
+                                            child: GestureDetector(
+                                              child: CircleAvatar(
+                                                radius:
+                                                28, // Adjust the size of the circular avatar
+                                                backgroundColor: Color(
+                                                    0xffffffff), // You can set the background color
+                                                child: Image.asset(
+                                                  "assets/images/cargo (1).png",
+                                                  width: 35,
+                                                  height: 35,
+                                                  color: Constants.primary_color,
+                                                ),
+                                              ),
+                                              onTap: () {
+                                                // Navigate to the OrderScreen when tapped
+                                                Navigator.of(context).push(
+                                                    MaterialPageRoute(
+                                                        builder: (context) =>
+                                                            Orders()));
+                                              },
+                                            ),
+                                          ),
+                                          Text(
+                                            "Order ",
+                                            style: TextStyle(
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.bold),
+                                          ), //Constants.secondary_color
+                                        ],
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding:
+                                      const EdgeInsets.symmetric(horizontal: 5.0),
+                                      child: Column(
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.all(4.0),
+                                            child: GestureDetector(
+                                              child: CircleAvatar(
+                                                radius:
+                                                28, // Adjust the size of the circular avatar
+                                                backgroundColor: Color(
+                                                    0xffffffff), // Constants.secondary_color,You can set the background color
+                                                child: Image.asset(
+                                                  'assets/images/engine-oil (3).png',
+                                                  width: 38,
+                                                  height: 38,
+                                                  color: Constants.primary_color,
+                                                ),
+                                              ),
+                                              onTap: () {
+                                                // Navigate to the OrderScreen when tapped
+                                                Navigator.of(context).push(
+                                                    MaterialPageRoute(
+                                                        builder: (context) =>
+                                                            Lubricant()));
+                                              },
+                                            ),
+                                          ),
+                                          Text(
+                                            " Lubricant ",
+                                            style: TextStyle(
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.bold),
+                                          ), //Constants.secondary_color
+                                        ],
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding:
+                                      const EdgeInsets.symmetric(horizontal: 5.0),
+                                      child: Column(
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.all(4.0),
+                                            child: GestureDetector(
+                                              child: CircleAvatar(
+                                                radius:
+                                                28, // Adjust the size of the circular avatar
+                                                backgroundColor: Color(
+                                                    0xffffffff), //Constants.secondary_color,// You can set the background color
+                                                child: Image.asset(
+                                                  "assets/images/shirt1.png",
+                                                  width: 38,
+                                                  height: 38,
+                                                  color: Constants.primary_color,
+                                                ),
+                                              ),
+                                              onTap: () {
+                                                // Navigate to the OrderScreen when tapped
+                                                Navigator.of(context).push(
+                                                    MaterialPageRoute(
+                                                        builder: (context) =>
+                                                            Uniform()));
+                                              },
+                                            ),
+                                          ),
+                                          Text(
+                                            " Uniforms",
+                                            style: TextStyle(
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.bold),
+                                          ), //Constants.secondary_color
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ],
                             )),
+                        /*
                         Container(
-                          color: Color(0xff3a833c),
+                          color: Constants.primary_color,
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment
                                 .center, // Adjust alignment as needed
@@ -314,6 +486,7 @@ class _HomeScreenState extends State<Home> {
                                             "assets/images/cargo (1).png",
                                             width: 35,
                                             height: 35,
+                                            color: Constants.primary_color,
                                           ),
                                         ),
                                         onTap: () {
@@ -330,7 +503,7 @@ class _HomeScreenState extends State<Home> {
                                       style: TextStyle(
                                           color: Colors.white,
                                           fontWeight: FontWeight.bold),
-                                    ), //Color(0xff01764a)
+                                    ), //Constants.secondary_color
                                   ],
                                 ),
                               ),
@@ -346,11 +519,12 @@ class _HomeScreenState extends State<Home> {
                                           radius:
                                               28, // Adjust the size of the circular avatar
                                           backgroundColor: Color(
-                                              0xffffffff), // Color(0xff01764a),You can set the background color
+                                              0xffffffff), // Constants.secondary_color,You can set the background color
                                           child: Image.asset(
                                             'assets/images/engine-oil (3).png',
                                             width: 38,
                                             height: 38,
+                                            color: Constants.primary_color,
                                           ),
                                         ),
                                         onTap: () {
@@ -367,7 +541,7 @@ class _HomeScreenState extends State<Home> {
                                       style: TextStyle(
                                           color: Colors.white,
                                           fontWeight: FontWeight.bold),
-                                    ), //Color(0xff01764a)
+                                    ), //Constants.secondary_color
                                   ],
                                 ),
                               ),
@@ -383,11 +557,12 @@ class _HomeScreenState extends State<Home> {
                                           radius:
                                               28, // Adjust the size of the circular avatar
                                           backgroundColor: Color(
-                                              0xffffffff), //Color(0xff01764a),// You can set the background color
+                                              0xffffffff), //Constants.secondary_color,// You can set the background color
                                           child: Image.asset(
                                             "assets/images/shirt1.png",
                                             width: 38,
                                             height: 38,
+                                            color: Constants.primary_color,
                                           ),
                                         ),
                                         onTap: () {
@@ -404,13 +579,14 @@ class _HomeScreenState extends State<Home> {
                                       style: TextStyle(
                                           color: Colors.white,
                                           fontWeight: FontWeight.bold),
-                                    ), //Color(0xff01764a)
+                                    ), //Constants.secondary_color
                                   ],
                                 ),
                               ),
                             ],
                           ),
                         ),
+                        */
                         SizedBox(
                           height: 10,
                         ),
@@ -517,7 +693,7 @@ class _HomeScreenState extends State<Home> {
                                                           fontWeight:
                                                               FontWeight.bold,
                                                           color:
-                                                              Color(0xff01764a),
+                                                              Constants.secondary_color,
                                                           fontSize: 18.0,
                                                         ),
                                                       ),
@@ -526,8 +702,7 @@ class _HomeScreenState extends State<Home> {
                                                           Icon(
                                                             FluentIcons
                                                                 .clock_arrow_download_20_regular, // Choose the clock icon you prefer
-                                                            color: Color(
-                                                                0xff01764a), // Set the color of the clock icon
+                                                            color: Constants.secondary_color, // Set the color of the clock icon
                                                             size: 16,
                                                           ),
                                                           SizedBox(
@@ -538,8 +713,7 @@ class _HomeScreenState extends State<Home> {
                                                             style: TextStyle(
                                                               fontWeight:
                                                                   FontWeight.bold,
-                                                              color: Color(
-                                                                  0xff01764a),
+                                                              color: Constants.secondary_color,
                                                               fontSize: 10,
                                                             ),
                                                           ),
@@ -562,7 +736,7 @@ class _HomeScreenState extends State<Home> {
                                                           fontWeight:
                                                               FontWeight.bold,
                                                           color:
-                                                              Color(0xff01764a),
+                                                              Constants.secondary_color,
                                                         ),
                                                       ),
                                                       Text(
@@ -571,7 +745,7 @@ class _HomeScreenState extends State<Home> {
                                                           fontWeight:
                                                               FontWeight.bold,
                                                           color:
-                                                              Color(0xff01764a),
+                                                              Constants.secondary_color,
                                                         ),
                                                       ),
                                                     ],
@@ -592,14 +766,14 @@ class _HomeScreenState extends State<Home> {
                                                         'PKR: ${item['indent_price']}',
                                                         style: TextStyle(
                                                           color:
-                                                              Color(0xff01764a),
+                                                              Constants.secondary_color,
                                                         ),
                                                       ),
                                                       Text(
                                                         'PKR: ${item['nozel_price']}',
                                                         style: TextStyle(
                                                           color:
-                                                              Color(0xff01764a),
+                                                              Constants.secondary_color,
                                                         ),
                                                       ),
                                                     ],

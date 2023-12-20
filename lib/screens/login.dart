@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../utils/constants.dart';
 import 'home.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
@@ -108,7 +109,7 @@ class _LoginState extends State<Login> {
                 Container(
                   alignment: Alignment.topLeft,
                   padding: EdgeInsets.only(left: 8.0),
-                  child: SvgPicture.asset('assets/images/puma_logo2.svg'), // Replace with your image asset
+                  child: Image.asset('assets/images/P2P Track Logo.png', width: 300,), // Replace with your image asset
                 ),
                 SizedBox(height: 60,),
                 Column(
@@ -195,7 +196,7 @@ class _LoginState extends State<Login> {
                             fontStyle: FontStyle.normal,
                           ),
                           focusedBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(width: 2, color: Colors.green.shade700),
+                            borderSide: BorderSide(width: 2, color: Constants.primary_color),
                           ),
                           enabledBorder: UnderlineInputBorder(
                             borderSide: BorderSide(width: 2, color: Colors.grey),
@@ -232,10 +233,10 @@ class _LoginState extends State<Login> {
                           ),
                           contentPadding: EdgeInsets.symmetric(vertical: 15), // Adjust padding as needed
                           enabledBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(width:2,color: Colors.grey),
+                            borderSide: BorderSide(width:2,color: Color(0xff9d9d9d)),
                           ),
                           focusedBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(width:2,color: Colors.green.shade700), // Color of the border
+                            borderSide: BorderSide(width:2,color: Constants.primary_color), // Color of the border
                           ),
                         ),
                       ),
@@ -287,11 +288,12 @@ class _LoginState extends State<Login> {
                                     fontWeight: FontWeight.w700,
                                     fontStyle: FontStyle.normal,
                                     fontSize: 16,
+                                    color: Colors.white
                                   ),
                                 ),
                               ),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Color(0xffe81329),
+                                backgroundColor:Constants.primary_color,
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.0)),
                               ),
                               onPressed: () {
@@ -318,7 +320,7 @@ class _LoginState extends State<Login> {
                       ),
                     ),
                     child: Text(
-                      'New to Puma Dealership? Register here ',
+                      'New to P2P Dealership? Register here ',
                       style: GoogleFonts.poppins(
                         textStyle: Theme.of(context).textTheme.displayLarge,
                         fontSize: 14,

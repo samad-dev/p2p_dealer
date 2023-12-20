@@ -21,6 +21,8 @@ import 'package:path_provider/path_provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart';
 
+import '../utils/constants.dart';
+
 class Orders extends StatefulWidget {
   static const Color contentColorOrange = Color(0xFF00705B);
   final Color leftBarColor = Color(0xFFCB6600);
@@ -313,9 +315,10 @@ class _OrdersState extends State<Orders> {
                   // <-- Icon
                   Icons.add,
                   size: 24.0,
+                  color: Colors.white,
                 ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xff3B8D5A), // Background color
+                  backgroundColor: Constants.primary_color, // Background color
                 ),
                 label: Text(
                   'Create Order',
@@ -335,7 +338,7 @@ class _OrdersState extends State<Orders> {
             Icons.refresh,
             color: Colors.white,
           ),
-          backgroundColor: Colors.red,
+          backgroundColor: Constants.primary_color,
           onPressed: () {
             print("Samad");
             fetchData();
